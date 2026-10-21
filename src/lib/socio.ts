@@ -59,54 +59,29 @@ function ehPessoa(socio: SocioQsa): boolean {
 }
 
 /**
- * Peso da qualificação — quem manda na empresa fala mais alto.
- * Sócio-Administrador > Administrador > Sócio > Presidente/Diretor.
- */
-function pesoQualificacao(qualificacao: string | null): number {
-	const q = (qualificacao ?? "").toLowerCase();
-	if (!q) return 0;
-	if (q.includes("socio-administrador") || q.includes("sócio-administrador"))
-		return 5;
-	if (q.includes("administrador")) return 4;
-	if (q.includes("socio") || q.includes("sócio")) return 3;
-	if (q.includes("presidente") || q.includes("diretor")) return 2;
-	if (q.includes("representante")) return 1;
-	return 0;
-}
-
-/**
  * Escolhe o sócio principal entre os registros do QSA.
  *
- * Ordem: qualifying weight (admin > sócio) → percentual de capital →
- * ordem de cadastro. Retorna `null` quando não há nenhuma pessoa
- * (só empresas, ou QSA vazio) — nesse caso o hook é sem nome.
+ * Regra: o **PRIMEIRO** sócio da lista (ordem de cadastro da Receita).
+ * Se o primeiro for pessoa jurídica (empresa no QSA), pula pro próximo
+ * pessoa — não se cumprimenta uma empresa.
+ *
+ * Retorna `null` quando não há nenhuma pessoa (só empresas, ou QSA vazio)
+ * — nesse caso o hook é sem nome (fantasia → razão social).
  */
 export function escolherSocioPrincipal(
 	socios: SocioQsa[] | null | undefined,
 ): SocioPrincipal | null {
-	const pessoas = (socios ?? []).filter(ehPessoa);
-	if (pessoas.length === 0) return null;
+	const primeiro = (socios ?? [])
+		.filter(ehPessoa)
+		.sort((a, b) => a.ordem - b.ordem)[0];
 
-	const principal = [...pessoas].sort((a, b) => {
-		const porPeso =
-			pesoQualificacao(b.qualificacaoSocio) -
-			pesoQualificacao(a.qualificacaoSocio);
-		if (porPeso !== 0) return porPeso;
+	if (!primeiro) return null;
 
-		const capA = a.percentualCapital ?? -1;
-		const capB = b.percentualCapital ?? -1;
-		if (capA !== capB) return capB - capA;
-
-		return a.ordem - b.ordem;
-	})[0];
-
-	if (!principal) return null;
-
-	const nome = principal.nomeSocio.trim();
+	const nome = primeiro.nomeSocio.trim();
 	return {
 		nome,
 		primeiroNome: primeiroNomeDe(nome),
-		qualificacao: principal.qualificacaoSocio?.trim() || null,
+		qualificacao: primeiro.qualificacaoSocio?.trim() || null,
 	};
 }
 
@@ -142,6 +117,87 @@ export function escolherDecisorDono(
 
 /** Partículas que nunca são o primeiro nome. */
 const PARTICULAS = new Set(["de", "da", "do", "das", "dos", "e", "y"]);
+
+/** Partículas que ficam em minúscula na caixa de frase. */
+const PARTICULAS_NOME = new Set([
+	"de",
+	"do",
+	"da",
+	"dos",
+	"das",
+	"e",
+	"em",
+	"a",
+	"o",
+]);
+
+/**
+ * Caixa de frase preservando acentos: "RIBEIRAO PRETO" → "Ribeirao Preto",
+ * "Black Dog Pet Shop" → "Black Dog Pet Shop".
+ *
+ * Partículas ficam em minúscula ("Padaria do João", "São José do Rio Preto").
+ */
+export function caixaDeFrase(texto: string): string {
+	return texto
+		.toLocaleLowerCase("pt-BR")
+		.split(" ")
+		.map((palavra, indice) => {
+			if (!palavra) return palavra;
+			if (indice > 0 && PARTICULAS_NOME.has(palavra)) return palavra;
+			return palavra.charAt(0).toLocaleUpperCase("pt-BR") + palavra.slice(1);
+		})
+		.join(" ");
+}
+
+/** Receita cola CPF/CNPJ na frente do nome ("46.652.584 FRANCIELE..."). */
+function semPrefixoNumerico(texto: string): string {
+	const limpo = texto.replace(/^[\d.\s/-]+/, "").trim();
+	return limpo || texto.trim();
+}
+
+/**
+ * Nome da empresa pro hook SEM nome (quando não há sócio nem dono).
+ *
+ * Ordem pedida: **nome fantasia → razão social → nome do cadastro**.
+ * A razão social vem suja da Receita (CPF/CNPJ na frente de MEI), então
+ * limpamos o prefixo numérico antes.
+ */
+export function escolherNomeEmpresa(input: {
+	nomeFantasia?: string | null;
+	razaoSocial?: string | null;
+	nome: string;
+}): string {
+	const fantasia = (input.nomeFantasia ?? "").trim();
+	if (fantasia) return caixaDeFrase(semPrefixoNumerico(fantasia));
+
+	const razao = (input.razaoSocial ?? "").trim();
+	if (razao) return caixaDeFrase(semPrefixoNumerico(razao));
+
+	return caixaDeFrase((input.nome ?? "").trim());
+}
+
+/** CPF na frente do nome =impseiro individual (MEI): a empresa É a pessoa. */
+const CPF_NA_FRENTE = /^\d[\d.\s/-]{7,14}\s+[A-Za-zÀ-ÿ]/;
+
+/**
+ * MEI (empresário individual): a Receita grava o CPF na frente do nome da
+ * razão social ("46.652.584 FRANCIELE REICHERT RIBEIRO COSTA"). Nesses
+ * casos a empresa É a pessoa — e ela é a dona. Sem isso, o hook sem nome
+ * sairia "Fala, pessoal da Franciele Reichert Ribeiro Costa!".
+ */
+export function detectarEmpreendedorIndividual(razaoSocial: string | null): {
+	nome: string;
+	primeiroNome: string;
+} | null {
+	const razao = (razaoSocial ?? "").trim();
+	if (!razao) return null;
+	if (!CPF_NA_FRENTE.test(razao)) return null;
+
+	const nome = razao.replace(/^\d[\d.\s/-]{7,14}\s+/, "").trim();
+	if (!nome) return null;
+
+	return { nome, primeiroNome: primeiroNomeDe(nome) };
+}
 
 /**
  * Acentos que a Receita perde quando grava o QSA em CAPS sem acento.

@@ -99,6 +99,7 @@ export async function gerarMensagemParaLead(
 		where: { uuid: leadUuid },
 		select: {
 			nome: true,
+			nomeFantasia: true,
 			razaoSocial: true,
 			cidade: true,
 			uf: true,
@@ -144,6 +145,7 @@ export async function gerarMensagemParaLead(
 	// escada de personalização no prompt. Sem registro = prompt sem ela.
 	const leadInput: LeadInput = {
 		nome: lead.nome,
+		nomeFantasia: lead.nomeFantasia,
 		razaoSocial: lead.razaoSocial,
 		cidade: lead.cidade,
 		uf: lead.uf,

@@ -66,8 +66,21 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(
 			/SÓCIO PRINCIPAL \(QSA — dono da empresa\):\*\* NÃO IDENTIFICADO/,
 		);
+		// leadBase não tem nome fantasia → hook usa a razão social
 		expect(prompt).toMatch(
-			/hook SEM nome: "Fala, pessoal da Padaria do João! Tudo bem\?"/,
+			/hook SEM nome: "Fala, pessoal da Padaria do João Ltda! Tudo bem\?"/,
+		);
+	});
+
+	it("sem sócio: o hook usa o nome FANTASIA quando existe", () => {
+		const prompt = buildColdOutreachPrompt({
+			...leadBase,
+			nomeFantasia: "BLACK DOG PET SHOP",
+			razaoSocial: "ADRIANO VIANA RIBEIRO SOARES",
+			socios: [],
+		});
+		expect(prompt).toMatch(
+			/hook SEM nome: "Fala, pessoal da Black Dog Pet Shop! Tudo bem\?"/,
 		);
 	});
 

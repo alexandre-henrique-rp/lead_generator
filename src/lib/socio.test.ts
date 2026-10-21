@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+	detectarEmpreendedorIndividual,
 	escolherDecisorDono,
+	escolherNomeEmpresa,
 	escolherSocioPrincipal,
 	primeiroNomeDe,
 	type SocioQsa,
@@ -15,17 +17,20 @@ const socio = (over: Partial<SocioQsa> & { nomeSocio: string }): SocioQsa => ({
 });
 
 describe("escolherSocioPrincipal", () => {
-	it("escolhe o sócio-administrador mesmo com outro antes na ordem", () => {
+	it("pega o PRIMEIRO sócio da lista (ordem de cadastro)", () => {
 		const resultado = escolherSocioPrincipal([
-			socio({ nomeSocio: "Fulano Beltrano", qualificacaoSocio: "Sócio" }),
 			socio({
-				nomeSocio: "JOSE NUNES PAEZ DE PROENCA JUNIOR",
+				nomeSocio: "PRIMEIRO DA LISTA",
+				qualificacaoSocio: "Sócio",
+				ordem: 0,
+			}),
+			socio({
+				nomeSocio: "SEGUNDO DA LISTA",
 				qualificacaoSocio: "Sócio-Administrador",
 				ordem: 1,
 			}),
 		]);
-		expect(resultado?.primeiroNome).toBe("José");
-		expect(resultado?.qualificacao).toBe("Sócio-Administrador");
+		expect(resultado?.nome).toBe("PRIMEIRO DA LISTA");
 	});
 
 	it("descarta sócio que é PESSOA JURÍDICA (nome de empresa)", () => {
@@ -56,7 +61,7 @@ describe("escolherSocioPrincipal", () => {
 		expect(resultado).toBeNull();
 	});
 
-	it("usa percentual de capital antes da ordem de cadastro", () => {
+	it("ignora % de capital — vale o primeiro da lista", () => {
 		const resultado = escolherSocioPrincipal([
 			socio({
 				nomeSocio: "PRIMEIRO SOCIO",
@@ -71,27 +76,69 @@ describe("escolherSocioPrincipal", () => {
 				percentualCapital: 80,
 			}),
 		]);
-		expect(resultado?.nome).toBe("MAIOR SOCIO");
-	});
-
-	it("prioriza administrador sobre sócio e presidente", () => {
-		const resultado = escolherSocioPrincipal([
-			socio({
-				nomeSocio: "PRESIDENTE DA CIA",
-				qualificacaoSocio: "Presidente",
-			}),
-			socio({
-				nomeSocio: "ADMINISTRADOR",
-				qualificacaoSocio: "Administrador",
-				ordem: 1,
-			}),
-		]);
-		expect(resultado?.nome).toBe("ADMINISTRADOR");
+		expect(resultado?.nome).toBe("PRIMEIRO SOCIO");
 	});
 
 	it("devolve null quando não há ninguém (QSA vazio)", () => {
 		expect(escolherSocioPrincipal([])).toBeNull();
 		expect(escolherSocioPrincipal(null)).toBeNull();
+	});
+});
+
+describe("escolherNomeEmpresa", () => {
+	it("prefere o nome fantasia", () => {
+		expect(
+			escolherNomeEmpresa({
+				nomeFantasia: "BLACK DOG PET SHOP",
+				razaoSocial: "ADRIANO VIANA RIBEIRO SOARES",
+				nome: "Black Dog Pet Shop",
+			}),
+		).toBe("Black Dog Pet Shop");
+	});
+
+	it("sem fantasia, usa a razão social", () => {
+		expect(
+			escolherNomeEmpresa({
+				nomeFantasia: null,
+				razaoSocial: "ZORZENON & ALVES EMPREENDIMENTOS ONLINE LTDA",
+				nome: "SOLUZZI",
+			}),
+		).toBe("Zorzenon & Alves Empreendimentos Online Ltda");
+	});
+
+	it("sem fantasia e sem razão, usa o nome do cadastro", () => {
+		expect(
+			escolherNomeEmpresa({
+				nomeFantasia: null,
+				razaoSocial: null,
+				nome: "ARIEL 4",
+			}),
+		).toBe("Ariel 4");
+	});
+
+	it("tira o CPF que a Receita cola na frente da razão social", () => {
+		expect(
+			escolherNomeEmpresa({
+				nomeFantasia: null,
+				razaoSocial: "46.652.584 FRANCIELE REICHERT RIBEIRO COSTA",
+				nome: "FRANCIELE REICHERT RIBEIRO COSTA",
+			}),
+		).toBe("Franciele Reichert Ribeiro Costa");
+	});
+});
+
+describe("detectarEmpreendedorIndividual", () => {
+	it("reconhece MEI (CPF na frente da razão social)", () => {
+		const resultado = detectarEmpreendedorIndividual(
+			"46.652.584 FRANCIELE REICHERT RIBEIRO COSTA",
+		);
+		expect(resultado?.primeiroNome).toBe("Franciele");
+		expect(resultado?.nome).toBe("FRANCIELE REICHERT RIBEIRO COSTA");
+	});
+
+	it("não confunde razão social de empresa com MEI", () => {
+		expect(detectarEmpreendedorIndividual("PADARIA DO JOAO LTDA")).toBeNull();
+		expect(detectarEmpreendedorIndividual(null)).toBeNull();
 	});
 });
 

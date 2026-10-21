@@ -24,7 +24,10 @@
  */
 
 import {
+	caixaDeFrase,
+	detectarEmpreendedorIndividual,
 	escolherDecisorDono,
+	escolherNomeEmpresa,
 	escolherSocioPrincipal,
 	type SocioQsa,
 } from "../socio";
@@ -50,6 +53,8 @@ export interface PesquisaEmpresaInput {
 
 export interface LeadInput {
 	nome: string;
+	/** Nome fantasia do CNPJ (trade name). */
+	nomeFantasia?: string | null;
 	razaoSocial: string | null;
 	cidade: string | null;
 	uf: string | null;
@@ -812,37 +817,6 @@ Se a sua mensagem falha em QUALQUER desses itens, REESCREVA antes de devolver. *
 // ==========================================================================
 
 /**
- * Caixa de frase preservando acentos: "RIBEIRAO PRETO" → "Ribeirao Preto",
- * "Black Dog Pet Shop" → "Black Dog Pet Shop".
- *
- * Partículas ficam em minúscula ("Padaria do João", "São José do Rio Preto").
- */
-const PARTICULAS_NOME = new Set([
-	"de",
-	"do",
-	"da",
-	"dos",
-	"das",
-	"e",
-	"em",
-	"a",
-	"o",
-]);
-
-function caixaDeFrase(texto: string): string {
-	return texto
-		.toLocaleLowerCase("pt-BR")
-		.split(" ")
-		.map((palavra, indice) => {
-			if (!palavra) return palavra;
-			const minuscula = indice > 0 && PARTICULAS_NOME.has(palavra);
-			if (minuscula) return palavra;
-			return palavra.charAt(0).toLocaleUpperCase("pt-BR") + palavra.slice(1);
-		})
-		.join(" ");
-}
-
-/**
  * Normaliza a cidade do banco pro formato que o Operador digita na
  * conversa: sem "/UF", em caixa de frase e com acento correto.
  *
@@ -906,26 +880,46 @@ function formatarDadosLead(lead: LeadInput): string {
 	// pra fugir do formato cru.
 	const cidadeNaMensagem = normalizarCidadeParaMensagem(lead.cidade);
 
-	// Sócio principal (QSA) — fonte do nome no hook. Cascata:
-	// 1) sócio do QSA  2) decisor-DONO da pesquisa  3) sem nome
+	// Cascata do nome no hook:
+	//   1) sócio do QSA  2) decisor-DONO da pesquisa
+	//   3) MEI (empresário individual: a empresa É a pessoa)
+	//   4) sem nome → hook com fantasia → razão social → nome do cadastro
 	const socioDoQsa = escolherSocioPrincipal(lead.socios);
 	const socioDaPesquisa = socioDoQsa
 		? null
 		: escolherDecisorDono(lead.pesquisa?.decisores);
+	const mei =
+		socioDoQsa || socioDaPesquisa
+			? null
+			: detectarEmpreendedorIndividual(lead.razaoSocial);
 	const socioPrincipal = socioDoQsa ?? socioDaPesquisa;
 	const fonteSocio = socioDoQsa
 		? "QSA (dono na empresa)"
 		: socioDaPesquisa
 			? "pesquisa (dono identificado)"
 			: null;
+
+	// Nome da empresa pro hook SEM nome: fantasia → razão social → nome do
+	// cadastro. A razão social vem suja da Receita ("46.652.584
+	// FRANCIELE REICHERT RIBEIRO COSTA" — CPF na frente de MEI), então
+	// limpamos o prefixo numérico.
+	const nomeEmpresa = escolherNomeEmpresa({
+		nomeFantasia: lead.nomeFantasia,
+		razaoSocial: lead.razaoSocial,
+		nome: lead.nome,
+	});
+
 	const linhaSocio = socioPrincipal
 		? `${socioPrincipal.primeiroNome} (${socioPrincipal.nome}${
 				socioPrincipal.qualificacao ? ` — ${socioPrincipal.qualificacao}` : ""
 			}${fonteSocio ? `, via ${fonteSocio}` : ""}) → hook: "Fala, ${socioPrincipal.primeiroNome}! Tudo bem?"`
-		: `NÃO IDENTIFICADO (sem sócio/dono nos dados) → hook SEM nome: "Fala, pessoal da ${caixaDeFrase(lead.nome.trim())}! Tudo bem?"`;
+		: mei
+			? `${mei.primeiroNome} (${mei.nome} — empresário individual, a empresa É a pessoa) → hook: "Fala, ${mei.primeiroNome}! Tudo bem?"`
+			: `NÃO IDENTIFICADO (sem sócio/dono nos dados) → hook SEM nome: "Fala, pessoal da ${nomeEmpresa}! Tudo bem?"`;
 
 	const linhas: Array<[string, string | null | undefined]> = [
 		["Nome", lead.nome],
+		["Nome fantasia (CNPJ)", lead.nomeFantasia],
 		["Razão Social", lead.razaoSocial],
 		["Localização", [lead.cidade, lead.uf].filter(Boolean).join(" / ") || null],
 		["Cidade (JA PRONTA pra escrever na mensagem)", cidadeNaMensagem],
