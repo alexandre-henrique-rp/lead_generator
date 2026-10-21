@@ -561,6 +561,7 @@ Antes de escrever, escolha a MELHOR fonte de personalização disponível nos da
 
 ## Bloco 2 — CONTEXTO E DOR (miolo do arquétipo)
 - 1 parágrafo. Mostre que você conhece o dia a dia deles: "Acompanho o [corre/trabalho] da [Empresa] aqui em [cidade] e vejo [a correria que é / o que trava]..." + 2-3 tarefas ou gargalos reais do setor separados por vírgula (o último com "e ainda ..." — ex.: "e ainda responder o WhatsApp")
+- A CIDADE entra no contexto ("aqui em Ribeirão") — o lead tem que se reconhecer em 1 segundo. NUNCA escreva só "aqui na região"
 - Arquétipo A: correria simultânea ("dar conta do balcão, organizar os horários e ainda responder o WhatsApp")
 - Arquétipo B: gargalo silencioso de custo ("planilha quebrando no meio do mês", "estoque que não bate com o fiscal")
 - Arquétipo C: rotina que consome equipe ("follow-up que some", "cliente só cobrado quando alguém lembra")
@@ -576,7 +577,7 @@ Antes de escrever, escolha a MELHOR fonte de personalização disponível nos da
 - ❌ NUNCA abra SEM apresentação (a mensagem tem que dizer quem é você) e NUNCA abra APENAS com apresentação (o gancho vem antes)
 
 ## Bloco 4 — VALOR (miolo do arquétipo — PROSA, sem lista)
-- 1 parágrafo curto de texto corrido (2 frases no máximo). Comece com "Ajudamos [setor] justamente a..." e cite 1-2 soluções CONCRETAS com detalhe operacional nomeável ("confirmação automática de horário pelo WhatsApp", "alerta de garantia", "NF-e automática", "Pix recorrente", "link de rastreio"), fechando no efeito pra operação ("sem tomar o tempo da equipe", "sem depender de planilha")
+- 1 parágrafo curto de texto corrido (2 frases no máximo). Comece SEMPRE com "Ajudamos [setor] justamente a..." (nunca "Ajudo", "A gente ajuda", "Eu ajudo" — quem ajuda é a King Dev, no plural) e cite 1-2 soluções CONCRETAS com detalhe operacional nomeável ("confirmação automática de horário pelo WhatsApp", "alerta de garantia", "NF-e automática", "Pix recorrente", "link de rastreio"), fechando no efeito pra operação ("sem tomar o tempo da equipe", "sem depender de planilha")
 - As soluções vêm do MAPA DE OPORTUNIDADES (peso em PRINCIPAL + EXPANSAO; ENTRADA entra quando couber)
 - Marketing (Ads/SEO/GMB) no máximo 1 menção, e só se couber — exceto arquétipo D (aquisição é o gargalo lá)
 - ❌ NUNCA liste: nem "Serviço (benefício);" com ponto e vírgula, nem 3 parágrafos separados, nem bullets — é UMA prosa, parece mensagem escrita por gente
@@ -772,13 +773,13 @@ Antes de devolver o JSON, passe por este checklist mental. **Se QUALQUER item fa
 - [ ] O nome "Alexandre" aparece com artigo MASCULINO: "o Alexandre", nunca "a Alexandre"
 - [ ] O CNAE está HUMANIZADO (ver bloco HUMANIZAR_CNAE) — não tem "atividades de", "serviços de", "comércio varejista de" no meio
 - [ ] O parágrafo de valor é PROSA corrida (1 parágrafo, 2 frases no máximo) — sem lista, sem "Serviço (benefício);", sem ponto e vírgula de item (no EMAIL: 1 parágrafo, não 3)
-- [ ] O parágrafo de valor tem pelo menos 1 detalhe operacional nomeável (comanda na chapa, link de rastreio, alerta de garantia, NF-e automática, Pix recorrente…)
+- [ ] O parágrafo de valor começa com "Ajudamos [setor]" (nunca "Ajudo" / "A gente ajuda") e tem pelo menos 1 detalhe operacional nomeável (comanda na chapa, link de rastreio, alerta de garantia, NF-e automática, Pix recorrente…)
 - [ ] O parágrafo de valor cita no mínimo 1 solução de software, automação, sistema ou integração contextual (sinal da pesquisa/setor) — no máximo 1 menção de marketing (exceto arquétipo D)
 - [ ] O CTA tem pergunta aberta + "5 minutos" + "por aqui" (nunca "por aqui mesmo") — e NÃO promete vídeo, exemplo, print ou demo (no EMAIL: os 2 caminhos "responde aqui ou chama no zap")
 - [ ] A oportunidade PRINCIPAL é de software/automação/integração (nunca marketing), EXCETO no arquétipo D — e marketing (tráfego pago/SEO/landing page) aparece no máx 1 menção da mensagem (exceto D)
 - [ ] NUNCA aparece "automação, sites e integrações" / "soluções personalizadas" / "transformação digital"
 - [ ] A mensagem TERMINA com "Abraço!" (nunca "Abração", nunca "| King Dev" nem nome na assinatura)
-- [ ] A cidade aparece em PT-BR normal ("Ribeirão Preto", não "RIBEIRAO PRETO / SP")
+- [ ] A CIDADE aparece NA MENSAGEM, em PT-BR normal ("Ribeirão Preto", não "RIBEIRAO PRETO / SP") — e nunca só "aqui na região"
 - [ ] "oportunidades" tem 3-5 itens, no mínimo 1 PRINCIPAL e 1 EXPANSAO, nenhum serviço fora do catálogo da PERSONA
 - [ ] Nenhuma palavra banida (ver lista acima)
 - [ ] A mensagem soa como se ALEXANDRE tivesse escrito praquele setor — não como template de empresa nem como a mesma mensagem de outro arquétipo
@@ -789,6 +790,47 @@ Se a sua mensagem falha em QUALQUER desses itens, REESCREVA antes de devolver. *
 // ==========================================================================
 // Formatador de dados do lead
 // ==========================================================================
+
+/**
+ * Normaliza a cidade do banco pro formato que o Operador digita na
+ * conversa: sem "/UF", em caixa de frase e com acento correto.
+ *
+ * O banco devolve "RIBEIRAO PRETO", "CRAVINHOS/SP", "SAO PAULO" etc.
+ * Passar isso cru pro Gemini fazia ele escapar pra "aqui na região" —
+ * ele não confiava em normalizar o nome da cidade sozinho.
+ */
+function normalizarCidadeParaMensagem(cidade: string | null): string | null {
+	const cru = (cidade ?? "").trim();
+	if (!cru) return null;
+
+	// Tira o "/SP" colado e estados colados no fim.
+	const semUf = cru
+		.replace(/\s*\/\s*[A-Za-z]{2}\s*$/, "")
+		.replace(/\s+[A-Za-z]{2}$/, "")
+		.trim();
+
+	if (!semUf) return null;
+
+	// Caixa de frase preservando acentos existentes:
+	// "RIBEIRAO PRETO" → "Ribeirao Preto", "São Paulo" → "São Paulo".
+	const capitalizado = semUf
+		.toLocaleLowerCase("pt-BR")
+		.split(" ")
+		.map((palavra) =>
+			palavra
+				? palavra.charAt(0).toLocaleUpperCase("pt-BR") + palavra.slice(1)
+				: palavra,
+		)
+		.join(" ");
+
+	// Acentos perdidos na origem (o banco às vezes grava sem acento):
+	// só os casos que aparecem na base da operação.
+	return capitalizado
+		.replace(/\bRibeirao\b/g, "Ribeirão")
+		.replace(/\bSao\b/g, "São")
+		.replace(/\bJose\b/g, "José")
+		.replace(/\bParana\b/g, "Paraná");
+}
 
 function formatarDadosLead(lead: LeadInput): string {
 	const idade = lead.dataInicioAtividade
@@ -815,10 +857,17 @@ function formatarDadosLead(lead: LeadInput): string {
 	const situacaoRelevante =
 		situacao && !situacao.toUpperCase().startsWith("ATIVA") ? situacao : null;
 
+	// Cidade como o Operador digita na conversa: sem "/UF", em caixa normal
+	// e com acento correto ("Ribeirão Preto", "Cravinhos"). O banco vem com
+	// caps e às vezes com "/SP" colado — o modelo escrevia "aqui na região"
+	// pra fugir do formato cru.
+	const cidadeNaMensagem = normalizarCidadeParaMensagem(lead.cidade);
+
 	const linhas: Array<[string, string | null | undefined]> = [
 		["Nome", lead.nome],
 		["Razão Social", lead.razaoSocial],
 		["Localização", [lead.cidade, lead.uf].filter(Boolean).join(" / ") || null],
+		["Cidade (JA PRONTA pra escrever na mensagem)", cidadeNaMensagem],
 		["Setor (CNAE)", lead.cnaeFiscalDescricao],
 		["Porte", lead.porte],
 		["Capital social", capital],

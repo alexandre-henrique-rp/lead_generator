@@ -28,6 +28,31 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt.length).toBeGreaterThan(500);
 	});
 
+	it("entrega a cidade já normalizada pra escrever na mensagem", () => {
+		const prompt = buildColdOutreachPrompt({
+			...leadBase,
+			cidade: "RIBEIRAO PRETO",
+			uf: "SP",
+		});
+		expect(prompt).toMatch(
+			/Cidade \(JA PRONTA pra escrever na mensagem\):\*\* Ribeirão Preto/,
+		);
+		expect(prompt).not.toMatch(
+			/Cidade \(JA PRONTA pra escrever na mensagem\):\*\* RIBEIRAO PRETO/,
+		);
+	});
+
+	it("tira o /UF colado da cidade", () => {
+		const prompt = buildColdOutreachPrompt({
+			...leadBase,
+			cidade: "CRAVINHOS/SP",
+			uf: "SP",
+		});
+		expect(prompt).toMatch(
+			/Cidade \(JA PRONTA pra escrever na mensagem\):\*\* Cravinhos/,
+		);
+	});
+
 	it("inclui a persona do Alexandre", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/Alexandre/);
