@@ -23,6 +23,12 @@
  * o system prompt completo pronto para enviar ao Gemini.
  */
 
+import {
+	escolherDecisorDono,
+	escolherSocioPrincipal,
+	type SocioQsa,
+} from "../socio";
+
 export type CanalMensagem = "WHATSAPP" | "EMAIL";
 
 /**
@@ -57,6 +63,8 @@ export interface LeadInput {
 	website: string | null;
 	/** Pesquisa web persistida (opcional — só existe se o Operador já pesquisou) */
 	pesquisa?: PesquisaEmpresaInput | null;
+	/** QSA do CNPJ (opcional) — de onde sai o nome do sócio principal. */
+	socios?: SocioQsa[] | null;
 }
 
 /**
@@ -232,7 +240,7 @@ Quando os dados do lead trouxerem **PESQUISA NA WEB**, ela é a fonte de fatos m
 
 ## Regras (obrigatórias quando a pesquisa existir)
 1. A mensagem DEVE usar pelo menos **1 fato específico da pesquisa** — produto, serviço, linha de trabalho, site, tempo de casa ou decisor. Tendo pesquisa e escrevendo "vi o cadastro de vocês" = output rejeitado.
-2. **Decisor nomeado:** se a pesquisa trouxer nome + cargo (ex.: "Joaquim Souza — sócio"), abra pelo primeiro nome no tom de zap: "Fala, Joaquim!" (só o primeiro nome, sem cargo, sem "prezado"). Nunca invente cargo nem trate gerente como dono.
+2. **Decisor nomeado:** o nome do hook NÃO vem da pesquisa — vem da linha "SÓCIO PRINCIPAL" dos dados, já resolvido (QSA = dono da empresa; se não houver, o decisor-dono da pesquisa; se não houver nenhum, hook SEM nome). Use exatamente o primeiro nome que estiver nessa linha. A lista de decisores da pesquisa serve de CONTEXTO (setor, porte, quem manda), NÃO de nome pro hook. NUNCA troque por outro nome, NUNCA chame um diretor/gerente de dono.
 3. **Sinais da pesquisa viram oferta de software** — traduza o que você viu em serviço dev concreto:
    - site existe mas não tem como pedir/falar (sem formulário, sem botão de WhatsApp) → site que converte + lead caindo direto no zap
    - catálogo/produto só em PDF, foto ou vitrine → catálogo digital com pedido online
@@ -316,7 +324,7 @@ Mensagens REAIS aprovadas pelo Operador. A anatomia delas vale pra qualquer seto
 > Abraço!
 
 **O que as 2 mensagens têm, e você deve reproduzir:**
-1. **Hook de 1 linha** — "Fala, [primeiro nome]! Tudo bem?" com o nome do decisor quando conhecido; senão nome fantasia ("Fala, pessoal da Black Dog! Tudo bem?"). O hook só cumprimenta — o gancho vem no bloco 2.
+1. **Hook de 1 linha** — "Fala, [primeiro nome]! Tudo bem?" quando o QSA traz o sócio principal (dono); SEM nome → "Fala, pessoal da [Empresa]! Tudo bem?" (e aí toda a personalização vai no bloco 2). NUNCA inventa nome.
 2. **Contexto e dor logo depois** — "Acompanho o [corre/trabalho] da [Empresa] aqui em [cidade] e vejo..." + 2-3 tarefas simultâneas do setor separadas por vírgula (a última com "e ainda ..."). É AQUI que entra a personalização (pesquisa, observação, tempo de casa).
 3. **Posicionamento em 2 frases** — "Sou o Alexandre, da King Dev, aqui da região." + verbo ("A gente desenvolve" ou "Nós desenvolvemos") + "automações e sistemas sob medida para o comércio local".
 4. **Valor em prosa** — 1 parágrafo: "Ajudamos [setor] justamente a [dor evitada]", com 1-2 soluções concretas e detalhe operacional nomeável (confirmação de horário pelo WhatsApp, lembrete de vacina, alerta de garantia...), fechando no efeito pra operação ("sem tomar o tempo da equipe"). SEM lista, SEM "Serviço (benefício);", SEM ponto e vírgula de item.
@@ -552,12 +560,24 @@ Antes de escrever, escolha a MELHOR fonte de personalização disponível nos da
 **NUNCA invente fatos.** Se não tem pesquisa, observação, tempo de casa, site nem CNAE útil, diga "vi o cadastro de vocês" e foque no setor.
 
 ## Bloco 1 — HOOK (invariante)
-- Saudação curta de UMA linha: "Fala, [primeiro nome]! Tudo bem?" (nome fantasia soa mais natural que razão social)
-- **Se a pesquisa trouxer DECISOR nomeado, personalize:** "Fala, Joaquim!" (primeiro nome dele, sem cargo, sem "prezado") — é o padrão das mensagens aprovadas
+Saudação curta de UMA linha, em UM de DOIS caminhos. Escolha pelo dado "SÓCIO PRINCIPAL" que vem nos dados do lead:
+
+**Caminho A — com nome (quando tem sócio principal):**
+- ✅ "Fala, [primeiro nome do sócio]! Tudo bem?" — só o primeiro nome, sem cargo, sem "prezado", sem sobrenome
+- O nome vem do QSA (dono/sócio-administrador da empresa). É a pessoa que decide — é ela que a mensagem precisa addressar
+
+**Caminho B — SEM nome (quando não tem sócio principal):**
+- ✅ "Fala, pessoal da [Empresa]! Tudo bem?" — o nome fantasia no lugar do nome da pessoa
+- Nesse caminho o hook carrega MENOS peso: a personalização TODA vai pro bloco 2 (empresa + cidade + fato real do setor). O bloco 2 tem que fazer o trabalho de provar que a mensagem é pra eles
+- ❌ NUNCA invente um nome, NUNCA use "[nome]" como placeholder, NUNCA chame de "dono", "Sr.", "prezado"
+- ❌ NUNCA troque o nome do sócio pelo nome de um "decisor" da pesquisa (diretor, gerente, sócio minoritário) — ou não tem nome, ou é o dono
+
+Regras dos dois caminhos:
 - O gancho real NÃO vem aqui — vem no bloco 2 (contexto). O hook só cumprimenta e cria clima
 - ❌ Errado: "Prezado Sr. João, gostaríamos de apresentar nossos serviços"
 - ❌ Errado: "Sou **a** Alexandre" (sempre "o Alexandre" — masculino)
-- ✅ Certo: "Fala, Adriano! Tudo bem?"
+- ✅ Certo (com nome): "Fala, Adriano! Tudo bem?"
+- ✅ Certo (sem nome): "Fala, pessoal da Black Dog! Tudo bem?"
 
 ## Bloco 2 — CONTEXTO E DOR (miolo do arquétipo)
 - 1 parágrafo. Mostre que você conhece o dia a dia deles: "Acompanho o [corre/trabalho] da [Empresa] aqui em [cidade] e vejo [a correria que é / o que trava]..." + 2-3 tarefas ou gargalos reais do setor separados por vírgula (o último com "e ainda ..." — ex.: "e ainda responder o WhatsApp")
@@ -761,11 +781,11 @@ Não adicione comentários, não explique o que fez, não peça desculpa. Só o 
 
 Antes de devolver o JSON, passe por este checklist mental. **Se QUALQUER item falhar, REESCREVA antes de responder.**
 
-- [ ] A mensagem ABRE com saudação curta personalizada ("Fala, [nome do decisor ou da empresa]! Tudo bem?") — não com "Sou o Alexandre" nem com "Prezado"
+- [ ] O hook segue o dado "SÓCIO PRINCIPAL": com nome → "Fala, [primeiro nome]! Tudo bem?"; sem nome → "Fala, pessoal da [Empresa]! Tudo bem?". NUNCA inventa nome, NUNCA usa "[nome]" como placeholder
 - [ ] O bloco de contexto cita pelo menos 1 fato real do lead (pesquisa / observação / tempo de casa ≥10 anos / site / CNAE humanizado)
 - [ ] O POSICIONAMENTO aparece em 2 frases depois do contexto ("Sou o Alexandre, da King Dev, aqui da região…")
 - [ ] O ARQUÉTIPO escolhido é coerente com o CNAE do lead (A balcão, B custo/integração, C confiança/agenda, D crescimento/aquisição) — e a análise justifica a escolha
-- [ ] Se os dados trouxerem PESQUISA NA WEB, a mensagem cita pelo menos 1 fato específico dela — e usa o nome do decisor quando conhecido — SEM citar a fonte
+- [ ] Se os dados trouxerem PESQUISA NA WEB, a mensagem cita pelo menos 1 fato específico dela — e o hook usa o nome do SÓCIO PRINCIPAL (linha de dados), NUNCA outro nome da pesquisa — SEM citar a fonte
 - [ ] O gancho veio de UMA das aberturas do bloco VARIEDADE E CURIOSIDADE — não a mesma abertura-cópia de sempre
 - [ ] A mensagem deixa 1 lacuna de curiosidade honesta (detalhe específico sem entregar a resposta toda) — sem clickbait mentiroso
 - [ ] NENHUM CONCORRENTE do lead foi citado (nem pelo nome, nem como "a concorrência") — regra dura
@@ -792,6 +812,37 @@ Se a sua mensagem falha em QUALQUER desses itens, REESCREVA antes de devolver. *
 // ==========================================================================
 
 /**
+ * Caixa de frase preservando acentos: "RIBEIRAO PRETO" → "Ribeirao Preto",
+ * "Black Dog Pet Shop" → "Black Dog Pet Shop".
+ *
+ * Partículas ficam em minúscula ("Padaria do João", "São José do Rio Preto").
+ */
+const PARTICULAS_NOME = new Set([
+	"de",
+	"do",
+	"da",
+	"dos",
+	"das",
+	"e",
+	"em",
+	"a",
+	"o",
+]);
+
+function caixaDeFrase(texto: string): string {
+	return texto
+		.toLocaleLowerCase("pt-BR")
+		.split(" ")
+		.map((palavra, indice) => {
+			if (!palavra) return palavra;
+			const minuscula = indice > 0 && PARTICULAS_NOME.has(palavra);
+			if (minuscula) return palavra;
+			return palavra.charAt(0).toLocaleUpperCase("pt-BR") + palavra.slice(1);
+		})
+		.join(" ");
+}
+
+/**
  * Normaliza a cidade do banco pro formato que o Operador digita na
  * conversa: sem "/UF", em caixa de frase e com acento correto.
  *
@@ -813,15 +864,7 @@ function normalizarCidadeParaMensagem(cidade: string | null): string | null {
 
 	// Caixa de frase preservando acentos existentes:
 	// "RIBEIRAO PRETO" → "Ribeirao Preto", "São Paulo" → "São Paulo".
-	const capitalizado = semUf
-		.toLocaleLowerCase("pt-BR")
-		.split(" ")
-		.map((palavra) =>
-			palavra
-				? palavra.charAt(0).toLocaleUpperCase("pt-BR") + palavra.slice(1)
-				: palavra,
-		)
-		.join(" ");
+	const capitalizado = caixaDeFrase(semUf);
 
 	// Acentos perdidos na origem (o banco às vezes grava sem acento):
 	// só os casos que aparecem na base da operação.
@@ -863,12 +906,31 @@ function formatarDadosLead(lead: LeadInput): string {
 	// pra fugir do formato cru.
 	const cidadeNaMensagem = normalizarCidadeParaMensagem(lead.cidade);
 
+	// Sócio principal (QSA) — fonte do nome no hook. Cascata:
+	// 1) sócio do QSA  2) decisor-DONO da pesquisa  3) sem nome
+	const socioDoQsa = escolherSocioPrincipal(lead.socios);
+	const socioDaPesquisa = socioDoQsa
+		? null
+		: escolherDecisorDono(lead.pesquisa?.decisores);
+	const socioPrincipal = socioDoQsa ?? socioDaPesquisa;
+	const fonteSocio = socioDoQsa
+		? "QSA (dono na empresa)"
+		: socioDaPesquisa
+			? "pesquisa (dono identificado)"
+			: null;
+	const linhaSocio = socioPrincipal
+		? `${socioPrincipal.primeiroNome} (${socioPrincipal.nome}${
+				socioPrincipal.qualificacao ? ` — ${socioPrincipal.qualificacao}` : ""
+			}${fonteSocio ? `, via ${fonteSocio}` : ""}) → hook: "Fala, ${socioPrincipal.primeiroNome}! Tudo bem?"`
+		: `NÃO IDENTIFICADO (sem sócio/dono nos dados) → hook SEM nome: "Fala, pessoal da ${caixaDeFrase(lead.nome.trim())}! Tudo bem?"`;
+
 	const linhas: Array<[string, string | null | undefined]> = [
 		["Nome", lead.nome],
 		["Razão Social", lead.razaoSocial],
 		["Localização", [lead.cidade, lead.uf].filter(Boolean).join(" / ") || null],
 		["Cidade (JA PRONTA pra escrever na mensagem)", cidadeNaMensagem],
 		["Setor (CNAE)", lead.cnaeFiscalDescricao],
+		["SÓCIO PRINCIPAL (QSA — dono da empresa)", linhaSocio],
 		["Porte", lead.porte],
 		["Capital social", capital],
 		[
@@ -908,7 +970,7 @@ function formatarDadosLead(lead: LeadInput): string {
 			],
 			["PESQUISA NA WEB — site encontrado", pesquisa.site],
 			[
-				"PESQUISA NA WEB — decisores (use o primeiro nome no hook)",
+				"PESQUISA NA WEB — decisores (o hook usa o SÓCIO PRINCIPAL, não esta lista)",
 				decisores || null,
 			],
 			[

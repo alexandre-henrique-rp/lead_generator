@@ -42,6 +42,41 @@ describe("buildColdOutreachPrompt", () => {
 		);
 	});
 
+	it("usa o sócio principal do QSA no hook", () => {
+		const prompt = buildColdOutreachPrompt({
+			...leadBase,
+			socios: [
+				{
+					nomeSocio: "LUCIANA APARECIDA RIBEIRO",
+					qualificacaoSocio: "Sócio-Administrador",
+					percentualCapital: null,
+					ordem: 0,
+					cnpjCpfDoSocio: "***992048**",
+				},
+			],
+		});
+		expect(prompt).toMatch(
+			/SÓCIO PRINCIPAL \(QSA — dono da empresa\):\*\* Luciana \(LUCIANA APARECIDA RIBEIRO — Sócio-Administrador/,
+		);
+		expect(prompt).toMatch(/hook: "Fala, Luciana! Tudo bem\?"/);
+	});
+
+	it("sem sócio: o prompt manda o hook SEM nome", () => {
+		const prompt = buildColdOutreachPrompt({ ...leadBase, socios: [] });
+		expect(prompt).toMatch(
+			/SÓCIO PRINCIPAL \(QSA — dono da empresa\):\*\* NÃO IDENTIFICADO/,
+		);
+		expect(prompt).toMatch(
+			/hook SEM nome: "Fala, pessoal da Padaria do João! Tudo bem\?"/,
+		);
+	});
+
+	it("proíbe inventar nome no hook", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(/NUNCA inventa nome/);
+		expect(prompt).toMatch(/Caminho B — SEM nome/);
+	});
+
 	it("tira o /UF colado da cidade", () => {
 		const prompt = buildColdOutreachPrompt({
 			...leadBase,
@@ -376,7 +411,7 @@ describe("buildColdOutreachPrompt", () => {
 	it("Quality Gate lista todos os checks críticos", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		// Cada checkbox do Quality Gate
-		expect(prompt).toMatch(/abre com saudação curta personalizada/i);
+		expect(prompt).toMatch(/O hook segue o dado "SÓCIO PRINCIPAL"/);
 		expect(prompt).toMatch(/ARQUÉTIPO escolhido é coerente/);
 		expect(prompt).toMatch(/MASCULINO.*Alexandre/);
 		expect(prompt).toMatch(/HUMANIZADO/);

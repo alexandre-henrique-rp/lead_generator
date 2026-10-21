@@ -122,6 +122,17 @@ export async function gerarMensagemParaLead(
 					fonte: true,
 				},
 			},
+			// QSA — de onde sai o nome do sócio principal (hook da mensagem).
+			socios: {
+				select: {
+					nomeSocio: true,
+					qualificacaoSocio: true,
+					percentualCapital: true,
+					ordem: true,
+					cnpjCpfDoSocio: true,
+				},
+				orderBy: { ordem: "asc" },
+			},
 		},
 	});
 
@@ -145,6 +156,7 @@ export async function gerarMensagemParaLead(
 		descricaoSituacaoCadastral: lead.descricaoSituacaoCadastral,
 		website: lead.website,
 		pesquisa: mapearPesquisa(lead.pesquisa),
+		socios: lead.socios,
 	};
 
 	// Chave efetiva: banco (Configurações → Integrações) > env.
