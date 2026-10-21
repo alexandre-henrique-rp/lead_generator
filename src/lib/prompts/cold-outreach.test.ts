@@ -408,6 +408,32 @@ describe("buildColdOutreachPrompt", () => {
 		);
 	});
 
+	it("regra de espaçamento: 1 bloco por linha, linha em branco só antes da assinatura", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(/ESPAÇAMENTO \(regra dura\)/);
+		expect(prompt).toMatch(/1 bloco = 1 LINHA/);
+		expect(prompt).toMatch(/NUNCA deixe linha em branco entre os blocos/);
+		expect(prompt).toMatch(/ÚNICA linha em branco/);
+		expect(prompt).toMatch(
+			/Linha em branco entre os blocos da mensagem do WhatsApp/,
+		);
+		expect(prompt).toMatch(/A mensagem tem 6 LINHAS \(1 bloco por linha\)/);
+	});
+
+	it("golden usa 1 bloco por linha (sem linha em branco no meio)", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		// no golden do Black Dog nao pode existir "> " (separador vazio) entre o
+		// hook e a assinatura, e a assinatura vem depois de um separador vazio
+		const golden = prompt.slice(
+			prompt.indexOf("**Pet shop em Ribeirão Preto"),
+			prompt.indexOf("**Ótica em Ribeirão Preto"),
+		);
+		const linhas = golden.split("\n").filter((l) => l.startsWith(">"));
+		expect(linhas.filter((l) => l === ">").length).toBe(1);
+		expect(linhas[linhas.length - 2]).toBe(">");
+		expect(linhas[linhas.length - 1]).toBe("> Abraço!");
+	});
+
 	it("proibe a fórmula robótica do contexto ('Acompanho' / 'sei como é:')", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(

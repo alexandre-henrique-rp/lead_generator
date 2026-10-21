@@ -303,13 +303,9 @@ Mensagens REAIS aprovadas pelo Operador. A anatomia delas vale pra qualquer seto
 **Pet shop em Ribeirão Preto (decisor "Adriano" conhecido):**
 
 > Fala, Adriano! Tudo certo?
->
 > Sou o Alexandre, da King Dev, aqui em Ribeirão Preto.
->
 > Na Black Dog o dia é de banho e tosa encaixado, WhatsApp tocando — e a falta marcada que só aparece quando o cliente não vem.
->
 > Ajudamos pet shop a cortar isso com confirmação automática de horário e lembrete de banho e vacina pelo WhatsApp — e não é sistema pronto com mensalidade, é automação sob medida pro jeito que vocês trabalham.
->
 > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
 >
 > Abraço!
@@ -317,13 +313,9 @@ Mensagens REAIS aprovadas pelo Operador. A anatomia delas vale pra qualquer seto
 **Ótica em Ribeirão Preto (mesma anatomia, outro setor):**
 
 > Fala, Luciana! Tudo certo?
->
 > Sou o Alexandre, da King Dev, aqui em Ribeirão Preto.
->
 > Na DaiiSa o dia é de armação nova pra conferir e orçamento no WhatsApp — e a venda que morre quando o balcão aperta.
->
 > Ajudamos ótica a cortar isso com lembrete de pós-venda e renovação de lente pelo WhatsApp — e não é sistema pronto com mensalidade, é automação sob medida pro jeito que vocês trabalham.
->
 > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
 >
 > Abraço!
@@ -342,13 +334,9 @@ Mensagens REAIS aprovadas pelo Operador. A anatomia delas vale pra qualquer seto
 ## Skeleton do Arquétipo B — CUSTO E INTEGRAÇÃO
 
 > Fala, [nome]! Tudo certo?
->
 > Sou o Alexandre, da King Dev, aqui em [cidade].
->
 > Na [empresa] o dia é [rotina concreta do setor], [rotina 2] — e [o vazamento que só aparece no fim do mês].
->
 > Ajudamos [setor B2B] a cortar isso com [integração ERP + NF-e automática — ex.: Bling/Tiny] e [painel de margem e estoque em tempo real], sem trocar o sistema que vocês já usam — e não é sistema pronto com mensalidade, é sob medida pro jeito que vocês trabalham.
->
 > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
 >
 > Abraço!
@@ -356,13 +344,9 @@ Mensagens REAIS aprovadas pelo Operador. A anatomia delas vale pra qualquer seto
 ## Skeleton do Arquétipo C — CONFIANÇA E AGENDA
 
 > Fala, [nome]! Tudo certo?
->
 > Sou o Alexandre, da King Dev, aqui em [cidade].
->
 > Na [empresa] o dia é [rotina manual que consome equipe], [follow-up que some] — e [cliente que só é cobrado quando alguém lembra].
->
 > Ajudamos [setor profissional] a automatizar o que consome a rotina de vocês, com [automação 1 do repertório do C — ex.: recibo/NF-e automáticos de honorário] e [Pix recorrente de honorário], liberando o time pro atendimento de quem confia em vocês — e não é sistema pronto com mensalidade, é sob medida pro jeito que vocês trabalham.
->
 > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
 >
 > Abraço!
@@ -380,13 +364,9 @@ Marketing (SEO, tráfego pago) só entra como menção opcional nesses setores �
 ## Skeleton do Arquétipo D — CRESCIMENTO E AQUISIÇÃO
 
 > Fala, [nome]! Tudo certo?
->
 > Sou o Alexandre, da King Dev, aqui em [cidade].
->
 > Na [empresa] o dia é [rotina do setor], [rotina 2] — e [cliente que some depois da 1ª compra / dependência de canal com taxa].
->
 > Ajudamos [setor] a [captar sem depender do canal com taxa] e [fazer o cliente voltar sozinho], com [catálogo/landing page com pedido direto] e [fidelidade + recompra no WhatsApp] — e não é sistema pronto com mensalidade, é sob medida pro jeito que vocês trabalham.
->
 > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
 >
 > Abraço!`;
@@ -550,7 +530,21 @@ Regras das aberturas:
 
 const ESTRUTURA_MENSAGEM = `# ESTRUTURA DA MENSAGEM (até 6 blocos curtos, PT-BR WhatsApp)
 
-A "mensagem" do JSON segue **6 blocos em ordem fixa**: 1) HOOK / 2) POSICIONAMENTO / 3) CONTEXTO/DOR / 4) VALOR / 5) CTA / 6) ASSINATURA. O miolo do arquétipo escolhido (blocos 3 e 4) muda conforme A/B/C/D - o resto é igual pra qualquer setor (ver bloco ARQUETIPOS). Pense em cada bloco como uma "piscadinha" de 2-3 linhas, não como um bloco de email.
+A "mensagem" do JSON segue **6 blocos em ordem fixa**: 1) HOOK / 2) POSICIONAMENTO / 3) CONTEXTO/DOR / 4) VALOR / 5) CTA / 6) ASSINATURA. O miolo do arquétipo escolhido (blocos 3 e 4) muda conforme A/B/C/D - o resto é igual pra qualquer setor (ver bloco ARQUETIPOS). Cada bloco é 1-2 frases curtas (2-3 linhas na tela do celular).
+
+**ESPAÇAMENTO (regra dura):**
+- **1 bloco = 1 LINHA.** Separe os blocos com UMA quebra de linha simples.
+- ❌ NUNCA deixe linha em branco entre os blocos — o WhatsApp só ganha 1 linha de respiro se o texto for corrido, e a mensagem fica com cara de email.
+- A **ÚNICA linha em branco** é a que vem **antes da assinatura** (\`Abraço!\`).
+- No WhatsApp, "parágrafo" quer dizer **1 LINHA** (quebra simples) — nunca linha em branco.
+- Exemplo do formato exato (1 bloco por linha; a linha em branco vem só antes da assinatura):
+  > Fala, Adriano! Tudo certo?
+  > Sou o Alexandre, da King Dev, aqui em Ribeirão Preto.
+  > Na Black Dog o dia é de banho e tosa encaixado, WhatsApp tocando — e a falta marcada que só aparece quando o cliente não vem.
+  > Ajudamos pet shop a cortar isso com confirmação automática de horário e lembrete de banho e vacina pelo WhatsApp — e não é sistema pronto com mensalidade, é automação sob medida pro jeito que vocês trabalham.
+  > Topa uma ideia rápida de 5 minutos por aqui? Se rolar, me fala o melhor horário.
+  >
+  > Abraço!
 
 ## Escada de personalização (QUAL USAR NO BLOCO DE CONTEXTO/DOR, EM ORDEM)
 
@@ -727,6 +721,7 @@ Essas frases e palavras são PESTE em cold outreach. Se a LLM gerar algo assim, 
 **Padrões estruturais banidos:**
 - Bullet points (-, *) / listas numeradas / negrito / markdown na mensagem (o parágrafo de valor é prosa corrida, sem "Serviço (benefício);" e sem marcador)
 - Mais de 6 blocos no WhatsApp / mais de 8 parágrafos no EMAIL
+- Linha em branco entre os blocos da mensagem do WhatsApp (é 1 bloco por linha; a única linha em branco é antes da assinatura)
 - Qualquer emoji
 - CTA de alto compromisso (reunião formal, orçamento, compra) ou promessa de ativo que você não tem (vídeo, exemplo, print, demo)
 - Variáveis tipo {{nome}} que não foram preenchidas
@@ -740,7 +735,7 @@ Essas frases e palavras são PESTE em cold outreach. Se a LLM gerar algo assim, 
 
 const SCHEMA_SAIDA_WHATSAPP = `{
   "analise": "string (4-6 frases em PT-BR, respondendo às 5 perguntas do framework — cite o arquétipo escolhido e por quê)",
-  "mensagem": "string (6 blocos seguindo a estrutura HOOK + POSICIONAMENTO + CONTEXTO/DOR + VALOR + CTA + ASSINATURA, com nome e cidade preenchidos)",
+  "mensagem": "string (6 blocos na ordem HOOK + POSICIONAMENTO + CONTEXTO/DOR + VALOR + CTA + ASSINATURA — 1 bloco por LINHA, separados por quebra simples, com a única linha em branco antes da assinatura; nome e cidade preenchidos)",
   "oportunidades": [
     {
       "titulo": "string curta (ex.: 'Automação de pedido no WhatsApp')",
@@ -817,6 +812,7 @@ Antes de devolver o JSON, passe por este checklist mental. **Se QUALQUER item fa
 - [ ] A oportunidade PRINCIPAL é de software/automação/integração (nunca marketing), EXCETO no arquétipo D — e marketing (tráfego pago/SEO/landing page) aparece no máx 1 menção da mensagem (exceto D)
 - [ ] NUNCA aparece "automação, sites e integrações" / "soluções personalizadas" / "transformação digital"
 - [ ] A mensagem TERMINA com "Abraço!" (nunca "Abração", nunca "| King Dev" nem nome na assinatura)
+- [ ] A mensagem tem 6 LINHAS (1 bloco por linha), separadas por quebra SIMPLES — sem linha em branco entre elas, com a ÚNICA linha em branco antes da assinatura ("Abraço!")
 - [ ] A CIDADE aparece NA MENSAGEM, em PT-BR normal ("Ribeirão Preto", não "RIBEIRAO PRETO / SP") — e nunca só "aqui na região"
 - [ ] "oportunidades" tem 3-5 itens, no mínimo 1 PRINCIPAL e 1 EXPANSAO, nenhum serviço fora do catálogo da PERSONA
 - [ ] Nenhuma palavra banida (ver lista acima)
@@ -1013,7 +1009,7 @@ ${mensagemAtual.trim()}
 
 ## Regras do modo melhoria
 1. Mantenha o ARQUÉTIPO e a estrutura de 6 blocos da mensagem atual (hook, posicionamento, contexto/dor, valor em prosa, CTA, assinatura). Se algum bloco estiver faltando ou fraco, complete ou corrija — sem trocar a arquitetura por outra.
-2. Mantenha o que já está bom (gancho personalizado, nome, cidade, tom). NÃO troque o gancho por outro à toa só pra dizer que mudou.
+2. Mantenha o que já está bom (gancho personalizado, nome, cidade, tom) E o espaçamento (1 bloco por linha, linha em branco só antes da assinatura). NÃO troque o gancho por outro à toa só pra dizer que mudou.
 3. Melhore nesta ordem de prioridade:
    a. **Especificidade operacional** — cada solução citada no parágrafo de valor deve ter detalhe nomeável (confirmação de horário pelo WhatsApp, NF-e automática, Pix recorrente, alerta de garantia, link de rastreio)
    b. **Personalização** — pesquisa da empresa, cidade, tempo de casa, observações do Operador, site (ver escada de personalização)
