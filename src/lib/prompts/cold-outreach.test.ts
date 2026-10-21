@@ -58,7 +58,7 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(
 			/SÓCIO PRINCIPAL \(QSA — dono da empresa\):\*\* Luciana \(LUCIANA APARECIDA RIBEIRO — Sócio-Administrador/,
 		);
-		expect(prompt).toMatch(/hook: "Fala, Luciana! Tudo bem\?"/);
+		expect(prompt).toMatch(/hook: "Fala, Luciana! Tudo certo\?"/);
 	});
 
 	it("sem sócio: o prompt manda o hook SEM nome", () => {
@@ -68,7 +68,7 @@ describe("buildColdOutreachPrompt", () => {
 		);
 		// leadBase não tem nome fantasia → hook usa a razão social
 		expect(prompt).toMatch(
-			/hook SEM nome: "Fala, pessoal da Padaria do João Ltda! Tudo bem\?"/,
+			/hook SEM nome: "Fala, pessoal da Padaria do João Ltda! Tudo certo\?"/,
 		);
 	});
 
@@ -80,7 +80,7 @@ describe("buildColdOutreachPrompt", () => {
 			socios: [],
 		});
 		expect(prompt).toMatch(
-			/hook SEM nome: "Fala, pessoal da Black Dog Pet Shop! Tudo bem\?"/,
+			/hook SEM nome: "Fala, pessoal da Black Dog Pet Shop! Tudo certo\?"/,
 		);
 	});
 
@@ -178,13 +178,14 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/"mensagem"/);
 	});
 
-	it("orienta WhatsApp com CTA de pergunta aberta + 5 minutos", () => {
+	it("orienta WhatsApp com CTA de 1 pergunta + passo natural + 5 minutos", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/CTA \(invariante\)/i);
-		expect(prompt).toMatch(/pergunta aberta/i);
+		expect(prompt).toMatch(/1 pergunta de sim\/não/i);
 		expect(prompt).toMatch(/5 minutos/);
+		expect(prompt).toMatch(/me fala o melhor horário/);
 		expect(prompt).toMatch(/por aqui/);
-		expect(prompt).toMatch(/Tudo bem\?/);
+		expect(prompt).toMatch(/Tudo certo\?/);
 	});
 
 	it("inclui perfil de Saúde com aviso de LGPD", () => {
@@ -380,20 +381,47 @@ describe("buildColdOutreachPrompt", () => {
 	it("inclui os 2 golden examples (Black Dog e DaiiSa) como gabarito", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/Anatomia do Arquétipo A/);
-		expect(prompt).toMatch(/Fala, Adriano! Tudo bem\?/);
-		expect(prompt).toMatch(/Acompanho o corre da Black Dog aqui em Ribeirão/);
-		expect(prompt).toMatch(/Fala, Luciana! Tudo bem\?/);
-		expect(prompt).toMatch(/Acompanho o trabalho da DaiiSa aqui em Ribeirão/);
-		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui da região/);
-		expect(prompt).toMatch(/reduzir faltas com confirmação automática/);
+		expect(prompt).toMatch(/Fala, Adriano! Tudo certo\?/);
+		expect(prompt).toMatch(/Na Black Dog o dia é de banho e tosa encaixado/);
+		expect(prompt).toMatch(/Fala, Luciana! Tudo certo\?/);
+		expect(prompt).toMatch(/Na DaiiSa o dia é de armação nova pra conferir/);
+		expect(prompt).toMatch(
+			/Sou o Alexandre, da King Dev, aqui em Ribeirão Preto/,
+		);
+		expect(prompt).toMatch(
+			/confirmação automática de horário e lembrete de banho e vacina/,
+		);
+		expect(prompt).toMatch(/Topa uma ideia rápida de 5 minutos por aqui\?/);
 		expect(prompt).toMatch(/Abraço!/);
 	});
 
-	it("nova anatomia: 6 blocos com contexto antes do posicionamento e assinatura 'Abraço!'", () => {
+	it("golden novo: hook, posicionamento em 2º e contexto sem 'Acompanho'", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		// o novo golden nao usa mais a formula "Acompanho o trabalho de X"
+		expect(prompt).not.toMatch(/Acompanho o corre da Black Dog/);
+		expect(prompt).not.toMatch(/Acompanho o trabalho da DaiiSa/);
+		// o contexto abre com "Na [Empresa] o dia é de..."
+		expect(prompt).toMatch(/Na \[Empresa\] o dia é de \[rotina concreta\]/);
+		// posicionamento vem antes do contexto/dor
+		expect(prompt.indexOf("Bloco 2 — POSICIONAMENTO")).toBeLessThan(
+			prompt.indexOf("Bloco 3 — CONTEXTO E DOR"),
+		);
+	});
+
+	it("proibe a fórmula robótica do contexto ('Acompanho' / 'sei como é:')", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(
+			/PROIBIDO o modelo "Acompanho o \[corre\/trabalho\]/,
+		);
+		expect(prompt).toMatch(/sei como é:/);
+		expect(prompt).toMatch(/Acompanho o \[corre\/trabalho\] da \[Empresa\]/);
+	});
+
+	it("nova anatomia: 6 blocos com posicionamento antes do contexto e assinatura 'Abraço!'", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/Bloco 1 — HOOK \(invariante\)/);
-		expect(prompt).toMatch(/Bloco 2 — CONTEXTO E DOR/);
-		expect(prompt).toMatch(/Bloco 3 — POSICIONAMENTO \(invariante\)/);
+		expect(prompt).toMatch(/Bloco 2 — POSICIONAMENTO \(invariante\)/);
+		expect(prompt).toMatch(/Bloco 3 — CONTEXTO E DOR/);
 		expect(prompt).toMatch(/Bloco 4 — VALOR \(miolo do arquétipo/);
 		expect(prompt).toMatch(/Bloco 5 — CTA \(invariante\)/);
 		expect(prompt).toMatch(/Bloco 6 — ASSINATURA \(invariante\)/);
@@ -402,6 +430,20 @@ describe("buildColdOutreachPrompt", () => {
 		);
 		expect(prompt).toMatch(/NUNCA "por aqui mesmo"/);
 		expect(prompt).toMatch(/assinatura antiga — acabou/);
+	});
+
+	it("valor fecha com o diferencial (sob medida, não SaaS pronto)", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(/não é sistema pronto com mensalidade/);
+		expect(prompt).toMatch(/FECHA com o diferencial/);
+	});
+
+	it("CTA tem 1 pergunta + passo natural, nunca 15 minutos", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(/Topa uma ideia rápida de 5 minutos por aqui\?/);
+		expect(prompt).toMatch(/Se rolar, me fala o melhor horário/);
+		expect(prompt).toMatch(/NUNCA duas perguntas no CTA/);
+		expect(prompt).toMatch(/NUNCA "15 minutos"/);
 	});
 
 	it("inclui skeletons dos arquétipos B, C e D", () => {
@@ -430,7 +472,7 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/HUMANIZADO/);
 		expect(prompt).toMatch(/parágrafo de valor é PROSA/);
 		expect(prompt).toMatch(/detalhe operacional nomeável/);
-		expect(prompt).toMatch(/pergunta aberta \+ "5 minutos" \+ "por aqui"/);
+		expect(prompt).toMatch(/UMA pergunta \+ "5 minutos" \+ "por aqui"/);
 		expect(prompt).toMatch(/TERMINA com "Abraço!"/);
 		expect(prompt).toMatch(/Ribeirão Preto/);
 		expect(prompt).toMatch(/oportunidades.*PRINCIPAL e 1 EXPANSAO/s);
@@ -499,7 +541,7 @@ describe("buildColdOutreachPrompt", () => {
 
 	it("posicionamento invariante é a apresentação padrão", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
-		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui da região/);
+		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui em \[cidade\]/);
 		expect(prompt).toMatch(/POSICIONAMENTO \(invariante\)/);
 	});
 
@@ -609,9 +651,9 @@ describe("buildColdOutreachPrompt — pesquisa, variedade e canal EMAIL", () => 
 
 	it("oferece variações de posicionamento e CTA", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
-		expect(prompt).toMatch(/POSICIONAMENTO — 2-3 variações/);
-		expect(prompt).toMatch(/CTA — 2-3 variações/);
-		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, daqui/);
+		expect(prompt).toMatch(/POSICIONAMENTO — 1 frase/);
+		expect(prompt).toMatch(/CTA — 1 pergunta/);
+		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui em \[cidade\]/);
 	});
 
 	it("bane abertura-cópia repetida nos anti-padrões", () => {
