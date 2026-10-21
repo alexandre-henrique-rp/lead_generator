@@ -110,7 +110,8 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/CTA \(invariante\)/i);
 		expect(prompt).toMatch(/pergunta aberta/i);
 		expect(prompt).toMatch(/5 minutos/);
-		expect(prompt).toMatch(/por aqui mesmo/);
+		expect(prompt).toMatch(/por aqui/);
+		expect(prompt).toMatch(/Tudo bem\?/);
 	});
 
 	it("inclui perfil de Saúde com aviso de LGPD", () => {
@@ -284,11 +285,11 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/Site existente/);
 	});
 
-	it("força 3 linhas de oferta no formato Serviço (benefício);", () => {
+	it("exige parágrafo de valor em prosa (sem lista de 3 linhas)", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
-		expect(prompt).toMatch(/exatamente 3 linhas de oferta/);
-		expect(prompt).toMatch(/Serviço \(benefício concreto\);/);
-		expect(prompt).toMatch(/PRINCIPAL \+ EXPANSAO \+ ENTRADA/);
+		expect(prompt).toMatch(/VALOR \(miolo do arquétipo — PROSA, sem lista\)/);
+		expect(prompt).toMatch(/NUNCA liste: nem "Serviço \(benefício\);"/);
+		expect(prompt).toMatch(/PRINCIPAL \+ EXPANSAO/);
 	});
 
 	it("banir promessa de vídeo, exemplo, print ou demo", () => {
@@ -303,14 +304,31 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/Abração.*typo/);
 	});
 
-	it("inclui Golden Example do Arquétipo A (lanchonete) como gabarito", () => {
+	it("inclui os 2 golden examples (Black Dog e DaiiSa) como gabarito", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/Anatomia do Arquétipo A/);
-		expect(prompt).toMatch(/Fala, pessoal do Mau Mau!/);
-		expect(prompt).toMatch(/49 anos de chão/);
-		expect(prompt).toMatch(/Sou da King Dev, aqui da região/);
-		expect(prompt).toMatch(/Automação de atendimento no WhatsApp/);
-		expect(prompt).toMatch(/Abraço, Alexandre \| King Dev/);
+		expect(prompt).toMatch(/Fala, Adriano! Tudo bem\?/);
+		expect(prompt).toMatch(/Acompanho o corre da Black Dog aqui em Ribeirão/);
+		expect(prompt).toMatch(/Fala, Luciana! Tudo bem\?/);
+		expect(prompt).toMatch(/Acompanho o trabalho da DaiiSa aqui em Ribeirão/);
+		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui da região/);
+		expect(prompt).toMatch(/reduzir faltas com confirmação automática/);
+		expect(prompt).toMatch(/Abraço!/);
+	});
+
+	it("nova anatomia: 6 blocos com contexto antes do posicionamento e assinatura 'Abraço!'", () => {
+		const prompt = buildColdOutreachPrompt(leadBase);
+		expect(prompt).toMatch(/Bloco 1 — HOOK \(invariante\)/);
+		expect(prompt).toMatch(/Bloco 2 — CONTEXTO E DOR/);
+		expect(prompt).toMatch(/Bloco 3 — POSICIONAMENTO \(invariante\)/);
+		expect(prompt).toMatch(/Bloco 4 — VALOR \(miolo do arquétipo/);
+		expect(prompt).toMatch(/Bloco 5 — CTA \(invariante\)/);
+		expect(prompt).toMatch(/Bloco 6 — ASSINATURA \(invariante\)/);
+		expect(prompt).toMatch(
+			/Termine SEMPRE com, em parágrafo próprio: `Abraço!`/,
+		);
+		expect(prompt).toMatch(/NUNCA "por aqui mesmo"/);
+		expect(prompt).toMatch(/assinatura antiga — acabou/);
 	});
 
 	it("inclui skeletons dos arquétipos B, C e D", () => {
@@ -333,15 +351,14 @@ describe("buildColdOutreachPrompt", () => {
 	it("Quality Gate lista todos os checks críticos", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
 		// Cada checkbox do Quality Gate
-		expect(prompt).toMatch(/abre com hook personalizado/i);
+		expect(prompt).toMatch(/abre com saudação curta personalizada/i);
 		expect(prompt).toMatch(/ARQUÉTIPO escolhido é coerente/);
 		expect(prompt).toMatch(/MASCULINO.*Alexandre/);
 		expect(prompt).toMatch(/HUMANIZADO/);
-		expect(prompt).toMatch(/EXATAMENTE 3 linhas/);
+		expect(prompt).toMatch(/parágrafo de valor é PROSA/);
 		expect(prompt).toMatch(/detalhe operacional nomeável/);
-		expect(prompt).toMatch(
-			/pergunta aberta \+ "5 minutos" \+ "por aqui mesmo"/,
-		);
+		expect(prompt).toMatch(/pergunta aberta \+ "5 minutos" \+ "por aqui"/);
+		expect(prompt).toMatch(/TERMINA com "Abraço!"/);
 		expect(prompt).toMatch(/Ribeirão Preto/);
 		expect(prompt).toMatch(/oportunidades.*PRINCIPAL e 1 EXPANSAO/s);
 		expect(prompt).toMatch(/oportunidade PRINCIPAL é de software\/automação/);
@@ -397,7 +414,7 @@ describe("buildColdOutreachPrompt", () => {
 		expect(prompt).toMatch(/recibo\/NF-e de honorário/);
 		expect(prompt).toMatch(/Pix recorrente de honorário/);
 		expect(prompt).toMatch(
-			/Marketing \(SEO, tráfego pago\) só entra como 3ª linha/,
+			/Marketing \(SEO, tráfego pago\) só entra como menção opcional/,
 		);
 	});
 
@@ -409,7 +426,7 @@ describe("buildColdOutreachPrompt", () => {
 
 	it("posicionamento invariante é a apresentação padrão", () => {
 		const prompt = buildColdOutreachPrompt(leadBase);
-		expect(prompt).toMatch(/Sou da King Dev, aqui da região/);
+		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, aqui da região/);
 		expect(prompt).toMatch(/POSICIONAMENTO \(invariante\)/);
 	});
 
@@ -521,7 +538,7 @@ describe("buildColdOutreachPrompt — pesquisa, variedade e canal EMAIL", () => 
 		const prompt = buildColdOutreachPrompt(leadBase);
 		expect(prompt).toMatch(/POSICIONAMENTO — 2-3 variações/);
 		expect(prompt).toMatch(/CTA — 2-3 variações/);
-		expect(prompt).toMatch(/Sou da King Dev, daqui/);
+		expect(prompt).toMatch(/Sou o Alexandre, da King Dev, daqui/);
 	});
 
 	it("bane abertura-cópia repetida nos anti-padrões", () => {
@@ -550,7 +567,7 @@ describe("buildColdOutreachPrompt — pesquisa, variedade e canal EMAIL", () => 
 			/PESQUISA NA WEB, a mensagem cita pelo menos 1 fato específico dela/,
 		);
 		expect(prompt).toMatch(
-			/NO MÍNIMO 1 das 3 linhas é software, automação, sistema ou integração contextual/,
+			/O parágrafo de valor cita no mínimo 1 solução de software, automação, sistema ou integração contextual/,
 		);
 		expect(prompt).toMatch(/aberturas do bloco VARIEDADE E CURIOSIDADE/);
 		expect(prompt).toMatch(/lacuna de curiosidade honesta/);

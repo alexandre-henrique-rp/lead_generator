@@ -291,7 +291,7 @@ async function chamarGemini(
 		mensagem: {
 			type: "STRING",
 			description:
-				"Mensagem de WhatsApp em PT-BR brasileiro, 6 blocos (hook personalizado, posicionamento, dor, exatamente 3 linhas de oferta 'Serviço (benefício);', CTA com pergunta aberta de 5 minutos, assinatura 'Abraço, Alexandre | King Dev'). SEM bullets, SEM markdown, SEM negrito, SEM emoji, SEM concorrentes citados. Cada bloco separado por quebra de linha em branco.",
+				"Mensagem de WhatsApp em PT-BR brasileiro, 6 blocos (saudação 'Fala, [nome]! Tudo bem?', contexto/dor com fato real do lead, posicionamento 'Sou o Alexandre, da King Dev, aqui da região...', valor em prosa SEM lista, CTA com pergunta aberta de 5 minutos 'por aqui', assinatura 'Abraço!'). SEM bullets, SEM markdown, SEM negrito, SEM emoji, SEM concorrentes citados. Cada bloco separado por quebra de linha em branco.",
 		},
 		oportunidades: {
 			type: "ARRAY",
