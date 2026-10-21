@@ -1,0 +1,19 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.env
+# Banco SQLite local — agora contém chaves de API (ConfiguracaoIntegracao).
+# NUNCA commitar: além dos segredos, o banco tem dados de leads/operador.
+dev.db
+dev.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
+todos.json

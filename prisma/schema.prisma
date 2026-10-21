@@ -1,0 +1,670 @@
+// ==========================================================================
+// lead_generator — schema.prisma
+// --------------------------------------------------------------------------
+// Fase 2 (12/10/2026): backend integrado para Projetos + Financeiro + Config.
+// Modelos: Usuario, Sessao, TokenResetSenha, Lead, Projeto, Sprint, Task,
+// Subtask, Parcela, Pagamento, Orcamento, ConfiguracaoEmpresa, PriceConfig.
+// ==========================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ==========================================================================
+// 1. Auth — 1 Operador autenticado (single-tenant)
+// ==========================================================================
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  nome      String
+  email     String   @unique
+  telefone  String?
+  cnpj      String?
+  senhaHash String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessoes         Sessao[]
+  tokenResetSenha TokenResetSenha[]
+  auditLogs       AuditLog[]
+
+  @@index([email])
+  @@index([uuid])
+}
+
+model Sessao {
+  id        Int       @id @default(autoincrement())
+  uuid      String    @unique @default(uuid())
+  usuarioId Int
+  tokenHash String    @unique
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+model TokenResetSenha {
+  id        Int       @id @default(autoincrement())
+  usuarioId Int
+  tokenHash String    @unique
+  expiresAt DateTime
+  usadoEm   DateTime?
+  createdAt DateTime  @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+// ==========================================================================
+// 2. Lead — dados do lead + enriquecimento via CNPJ (Receita Federal / BrasilAPI)
+// ==========================================================================
+
+model Lead {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid())
+  nome          String
+  razaoSocial   String?
+  emails        String?
+  telefone      String?
+  telefoneNorm  String?
+  cnpj          String?
+  cnpjNorm      String?
+  cpf           String?
+  cep           String?
+  logradouro    String?
+  numero        String?
+  bairro        String?
+  cidade        String?
+  uf            String?
+  telefoneCelular    String? // só dígitos (WhatsApp / celular)
+  telefoneFixo       String? // só dígitos (telefone fixo)
+  origem        String   @default("MANUAL")
+  etapaFunil    String   @default("NOVO")
+  score         Int?
+  observacoes   String?
+  temWhatsapp   Boolean  @default(false)
+  isActive      Boolean  @default(true)
+
+  // ── Enriquecimento via API CNPJ (Receita Federal / BrasilAPI) ──
+  nomeFantasia                String?
+  identificadorMatrizFilial   Int? // 1=matriz, 2=filial
+  descricaoMatrizFilial       String? // "MATRIZ" / "FILIAL"
+  situacaoCadastral            Int? // código
+  descricaoSituacaoCadastral   String? // "ATIVA", "BAIXADA", etc.
+  dataSituacaoCadastral        DateTime?
+  motivoSituacaoCadastral      String?
+  dataInicioAtividade          DateTime?
+  cnaeFiscal                   Int?
+  cnaeFiscalDescricao          String?
+  codigoNaturezaJuridica       Int?
+  naturezaJuridica             String?
+  capitalSocialCentavos        Int?
+  porte                        String?
+  codigoPorte                  Int?
+  descricaoPorte               String?
+  tipoLogradouro               String? // "AVENIDA", "RUA", etc.
+  complemento                  String?
+  codigoMunicipio              Int?
+  codigoMunicipioIbge          Int?
+  municipio                    String?
+  dddTelefone1                 String?
+  dddTelefone2                 String?
+  emailCnpj                    String? // e-mail retornado pela API (sempre lowercase)
+  email                        String? // e-mail principal do lead (sempre lowercase)
+  opcaoPeloMei                 Boolean?
+  dataOpcaoPeloMei             DateTime?
+  dataExclusaoDoMei            DateTime?
+  opcaoPeloSimples             Boolean?
+  dataOpcaoPeloSimples         DateTime?
+  dataExclusaoDoSimples        DateTime?
+  qualificacaoResponsavel     String?
+  dataUltimaConsultaCnpj       DateTime?
+  jsonCnaesSecundarios         String? // JSON-as-string
+  jsonRegimeTributario         String? // JSON-as-string
+  jsonQsa                      String? // JSON-as-string completo com o QSA
+  situacaoEspecial             String?
+  dataSituacaoEspecial         DateTime?
+  enteFederativoResponsavel    String?
+  nomeCidadeNoExterior         String?
+  pais                         String?
+  codigoPais                   String?
+  capitalSocial                Float? // valor em reais (não centavos) vindo da API
+
+  // ── Qualificação comercial & inteligência de mercado ──
+  website                      String? // URL do site da empresa
+  faturamentoPresumido         String? // Faixa estimada (ex: "Até R$ 360 mil/ano")
+  quantidadeFuncionarios       Int? // Estimativa de colaboradores
+  dddFax                       String?
+  descricaoMotivoSituacaoCadastral String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projetos      Projeto[]
+  socios        Socio[]
+  cnpjConsultas CnpjConsulta[]
+  interacoes    InteracaoLead[]
+  pesquisa      PesquisaLead?
+
+  @@index([uuid])
+  @@index([telefoneNorm])
+  @@index([cnpj])
+  @@index([cnpjNorm])
+  @@index([etapaFunil])
+  @@index([createdAt])
+}
+
+// Anotações / registros de contato do operador — 1 lead → N interações
+model InteracaoLead {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  leadId    Int
+  tipo      String   @default("NOTA") // "WHATSAPP" | "LIGACAO" | "REUNIAO" | "NOTA"
+  resumo    String
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+// Quadro Societário (QSA) — 1 lead → N sócios
+model Socio {
+  id                          Int      @id @default(autoincrement())
+  uuid                        String   @unique @default(uuid())
+  leadId                      Int
+  identificadorDeSocio        Int?
+  nomeSocio                   String
+  cnpjCpfDoSocio              String? // já vem mascarado da Receita (ex: "***112108**")
+  qualificacaoSocio            String?
+  codigoQualificacaoSocio      Int?
+  dataEntradaSociedade         DateTime?
+  faixaEtaria                 String?
+  codigoFaixaEtaria            Int?
+  pais                        String?
+  codigoPais                   String?
+  cpfRepresentanteLegal        String?
+  nomeRepresentanteLegal       String?
+  qualificacaoRepresentanteLegal String?
+  codigoQualificacaoRepresentanteLegal Int?
+  percentualCapital           Float?
+  ordem                       Int      @default(0)
+  createdAt                   DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([ordem])
+}
+
+// Log de consultas à API de CNPJ — audit + retry
+model CnpjConsulta {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid())
+  leadId         Int
+  cnpjConsultado String
+  dataConsulta   DateTime @default(now())
+  status         String // "SUCESSO" | "NAO_ENCONTRADO" | "ERRO_API" | "CNPJ_INVALIDO"
+  fonte          String // "BRASILAPI" | "RECEITAWS" | etc
+  mensagemErro   String?
+  ip             String?
+  userAgent      String?
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([dataConsulta])
+  @@index([status])
+}
+
+// Pesquisa web sobre a empresa (cascade Gemini Grounding > Places >
+// lead-data) — 1:1 com Lead, guarda a ÚLTIMA pesquisa executada (upsert
+// ao fim do cascade). Alimenta o prompt do gerador de 1ª mensagem com
+// fatos verificados (site, contatos, decisores, resumo das fontes).
+// Listas/objetos ficam JSON-as-string (padrão do projeto em SQLite).
+
+model PesquisaLead {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid())
+  leadId        Int      @unique
+  resumo        String
+  fonte         String   @default("lead-data") // "gemini-grounded" | "places" | "lead-data"
+  modelo        String   @default("")
+  site          String?
+  emails        String?  // JSON-as-string ["a@b.com"]
+  telefones     String?  // JSON-as-string ["(11) 99999-9999"]
+  whatsapp      String?  // E.164 sem sinal (5511999999999)
+  decisores     String?  // JSON-as-string [{nome, cargo}]
+  fontes        String?  // JSON-as-string [{uri, titulo}]
+  queriesUsadas String?  // JSON-as-string ["query"]
+  tentativas    String?  // JSON-as-string [{tier, ok, motivo}]
+  pesquisadoEm  DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+}
+
+// ==========================================================================
+// 3. Projeto + Kanban (Sprint/Task/Subtask)
+// ==========================================================================
+
+model Projeto {
+  id                              Int       @id @default(autoincrement())
+  uuid                            String    @unique @default(uuid())
+  leadId                          Int?
+  nome                            String
+  descricao                       String?
+  estado                          String    @default("LEVANTAMENTO")
+  progresso                       Int       @default(0)
+  dataInicio                      DateTime?
+  dataEntregaPrevista             DateTime?
+  pausado                         Boolean   @default(false)
+  interrompidoPorFaltaDePagamento Boolean  @default(false)
+  valorTotalCentavos               Int       @default(0)
+  statusPagamento                 String    @default("PENDENTE")
+  isActive                        Boolean   @default(true)
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
+
+  lead       Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  sprints    Sprint[]
+  tarefas    Task[]
+  parcelas   Parcela[]
+  pagamentos Pagamento[]
+  orcamento  Orcamento?
+  propostas  Proposta[]
+  contratos  Contrato[]
+  questionarios Questionario[]
+  arquivos   Arquivo[]
+
+  @@index([uuid])
+  @@index([leadId])
+  @@index([estado])
+  @@index([statusPagamento])
+  @@index([dataEntregaPrevista])
+  @@index([createdAt])
+}
+
+model Sprint {
+  id              Int       @id @default(autoincrement())
+  uuid            String    @unique @default(uuid())
+  projetoId       Int
+  nome            String
+  ordem           Int       @default(0)
+  dataInicio      DateTime?
+  dataFim         DateTime?
+  tempoGastoHoras Float     @default(0)
+  status          String    @default("PLANEJAMENTO")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  projeto Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  tarefas Task[]
+
+  @@index([projetoId])
+  @@index([ordem])
+  @@index([status])
+}
+
+model Task {
+  id         Int       @id @default(autoincrement())
+  uuid       String    @unique @default(uuid())
+  projetoId  Int
+  sprintId   Int?
+  nome       String
+  descricao  String?
+  ordem      Int       @default(0)
+  horasEstimadas Float  @default(0)
+  tempoGastoHoras Float @default(0)
+  status     String    @default("A_FAZER")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  projeto  Projeto   @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  sprint   Sprint?   @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  subtasks Subtask[]
+
+  @@index([projetoId])
+  @@index([sprintId])
+  @@index([status])
+  @@index([ordem])
+}
+
+model Subtask {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  nome      String
+  concluida Boolean @default(false)
+  ordem     Int     @default(0)
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([ordem])
+}
+
+// ==========================================================================
+// 4. Orçamento
+// ==========================================================================
+
+model Orcamento {
+  id                 Int      @id @default(autoincrement())
+  uuid               String   @unique @default(uuid())
+  projetoId          Int      @unique
+  resumo             String
+  tempoTotalHoras    Float
+  valorTotalCentavos  Int
+  pisoCentavos       Int
+  precoFinalCentavos Int
+  descontoTipo       String?  // "PERCENTUAL" | "VALOR" | null
+  descontoValor      Int      @default(0) // percentual (0..100) OU centavos
+  precoHoraCentavos  Int?     // override opcional do preço-hora (senão usa PriceConfig)
+  observacoes        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  projeto Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@index([projetoId])
+}
+
+// ==========================================================================
+// 4b. Funil de vendas — Proposta + Contrato (vinculados ao Projeto)
+// ==========================================================================
+
+model Proposta {
+  id                 Int      @id @default(autoincrement())
+  uuid               String   @unique @default(uuid())
+  projetoId          Int
+  token              String   @unique // link público
+  status             String   @default("RASCUNHO") // RASCUNHO | ENVIADA | ACEITA | RECUSADA
+  resumo             String
+  tempoTotalHoras    Float    @default(0)
+  precoFinalCentavos Int      @default(0)
+  // Aceite simples do cliente
+  aceiteNome         String?
+  aceiteDoc          String?  // CPF/CNPJ só dígitos
+  aceiteEm           DateTime?
+  aceiteHash         String?  // sha256(projeto+valor+nome+doc+timestamp)
+  recusadoEm         DateTime?
+  enviadaEm          DateTime?
+  revogadoEm         DateTime? // link antigo revogado ao regenerar
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  projeto   Projeto    @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  contratos Contrato[]
+  arquivos  Arquivo[]
+
+  @@index([projetoId])
+  @@index([token])
+  @@index([status])
+}
+
+model Contrato {
+  id                 Int      @id @default(autoincrement())
+  uuid               String   @unique @default(uuid())
+  projetoId          Int
+  propostaId         Int?
+  token              String   @unique // link público
+  status             String   @default("RASCUNHO") // RASCUNHO | ENVIADO | ASSINADO
+  // Identificação do projeto contratado (snapshot)
+  projetoNome        String
+  resumo             String
+  precoFinalCentavos Int      @default(0)
+  // Assinatura simples do cliente
+  assinaturaNome     String?
+  assinaturaDoc      String?
+  assinaturaEm       DateTime?
+  assinaturaHash     String?
+  enviadoEm          DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  projeto  Projeto   @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  proposta Proposta? @relation(fields: [propostaId], references: [id], onDelete: SetNull)
+
+  @@index([projetoId])
+  @@index([token])
+  @@index([status])
+}
+
+// ==========================================================================
+// 4c. Levantamento de Requisitos — Questionario (vinculado ao Projeto)
+// ==========================================================================
+
+model Questionario {
+  id                 Int       @id @default(autoincrement())
+  uuid               String    @unique @default(uuid())
+  projetoId          Int
+  token              String    @unique // link público
+  status             String    @default("AGUARDANDO") // AGUARDANDO | RESPONDIDO
+  // Perguntas suplementares criadas pelo operador (JSON array de strings).
+  perguntasSuplementares String  @default("[]")
+  // Respostas do cliente: JSON { tipoProjeto, respostas: {chave:valor}, suplementares: [...], duvidas: [...], links: [...] }
+  respostasJson      String?
+  // Dados do cliente que respondeu
+  clienteNome        String?
+  clienteEmail       String?
+  clienteTelefone    String?
+  linkDesabilitadoEm DateTime? // marca quando o link morre (após responder)
+  respondidoEm       DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  projeto  Projeto   @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  arquivos Arquivo[]
+
+  @@index([projetoId])
+  @@index([token])
+  @@index([status])
+}
+
+// ==========================================================================
+// 4d. Arquivo — gerência de uploads (RustFS/S3 ou filesystem local)
+// ==========================================================================
+
+model Arquivo {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid())
+  originalName   String
+  storageKey     String   // key/caminho dentro do bucket (ou caminho local)
+  bucket         String?  // bucket usado (null se local)
+  url            String   // URL pública direta para exibir/baixar
+  mimeType       String
+  ext            String
+  size           Int      // bytes
+  hash           String?  // SHA-256
+  tipo           String   @default("DOCUMENTO") // IMAGEM | VIDEO | DOCUMENTO
+  categoria      String   @default("ANEXO_QUESTIONARIO")
+  storageTipo    String   @default("LOCAL") // LOCAL | S3
+  projetoId      Int?
+  questionarioId Int?
+  propostaId     Int?
+  createdAt      DateTime @default(now())
+
+  projeto      Projeto?      @relation(fields: [projetoId], references: [id], onDelete: SetNull)
+  questionario Questionario? @relation(fields: [questionarioId], references: [id], onDelete: SetNull)
+  proposta     Proposta?     @relation(fields: [propostaId], references: [id], onDelete: SetNull)
+
+  @@index([projetoId])
+  @@index([questionarioId])
+  @@index([propostaId])
+  @@index([categoria])
+}
+
+// ==========================================================================
+// 4e. StorageConfig — credenciais S3-compatível (singleton no banco)
+// ==========================================================================
+
+model StorageConfig {
+  id               Int      @id @default(1)
+  habilitado       Boolean  @default(false) // se false → fallback filesystem local
+  endpoint         String   @default("") // ex.: https://storage.kingdevtec.com
+  region           String   @default("us-east-1")
+  accessKey        String   @default("")
+  secretKey        String   @default("")
+  bucketPrincipal  String   @default("") // bucket base (quando não é por projeto)
+  bucketPorProjeto Boolean  @default(true) // true: um bucket por projeto
+  forcePathStyle   Boolean  @default(true)
+  publicBaseUrl    String   @default("") // base para montar URL pública direta
+  politica         String   @default("public-read") // política de objetos
+  updatedAt        DateTime @updatedAt
+}
+
+// ==========================================================================
+// 4f. ConfiguracaoIntegracao — chaves de API gerenciáveis (singleton)
+// ==========================================================================
+// Chaves de provedores externos (AIsa, Google Maps, Gemini, OpenRouter, SMTP)
+// guardadas no banco e editáveis em Configurações → Integrações.
+//
+// Decisão do Operador (19/10/2026): chaves em TEXTO PURO no SQLite (o
+// arquivo dev.db local é o cofre). As server functions NUNCA devolvem o
+// valor em claro — só `definida: boolean` + prévia mascarada.
+
+model ConfiguracaoIntegracao {
+  id               Int      @id @default(1)   // singleton — sempre id = 1
+  aisaApiKey       String?
+  googleMapsApiKey String?
+  geminiApiKey     String?
+  geminiModelo     String   @default("gemini-3.5-flash-lite")
+  // Gate de custo: false = cadeia automática de fallback só no modelo
+  // gratuito (flash-lite). true = permite cair nos modelos pagos da
+  // cadeia quando o gratuito falhar (404/503).
+  geminiPermitirPago Boolean @default(false)
+  openRouterApiKey String?
+  openRouterModelo String?
+  smtpHost         String?
+  smtpPorta        Int      @default(587)
+  smtpUsuario      String?
+  smtpSenha        String?
+  updatedAt        DateTime @updatedAt
+}
+
+// ==========================================================================
+// 5. Financeiro (Parcela + Pagamento)
+// ==========================================================================
+
+model Parcela {
+  id             Int       @id @default(autoincrement())
+  uuid           String    @unique @default(uuid())
+  projetoId      Int
+  numero         Int
+  valorCentavos  Int
+  dataVencimento DateTime
+  dataPagamento  DateTime?
+  status         String    @default("PENDENTE")
+  pagaComAtraso  Boolean   @default(false)
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  projeto   Projeto    @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  pagamento Pagamento?
+
+  @@index([projetoId])
+  @@index([status])
+  @@index([dataVencimento])
+}
+
+model Pagamento {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid())
+  projetoId       Int
+  parcelaId       Int?     @unique
+  valorCentavos   Int
+  data            DateTime
+  observacoes     String?
+  createdAt       DateTime @default(now())
+
+  projeto Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  parcela Parcela? @relation(fields: [parcelaId], references: [id])
+
+  @@index([projetoId])
+  @@index([data])
+}
+
+// ==========================================================================
+// 6. Configurações (singletons)
+// ==========================================================================
+
+model ConfiguracaoEmpresa {
+  id        Int      @id @default(1)
+  razaoSocial String
+  cnpj       String
+  endereco   String
+  updatedAt  DateTime @updatedAt
+}
+
+model PriceConfig {
+  id                       Int     @id @default(1)
+  custoHoraCentavos        Int     @default(6059)
+  precoHoraTabelaCentavos  Int     @default(9500)
+  margemMinima             Float   @default(1.50)
+  regime                   String  @default("SIMPLES_NACIONAL_ANEXO_III")
+  aliquotaImpostos         Float   @default(0.06)
+  prolaboreCentavos        Int     @default(224000)
+  inssAliquota             Float   @default(0.11)
+  reservaMesesVazios       Float   @default(0.10)
+  custoFixoMensalCentavos  Int     @default(0)
+  bloqueioPiso             Boolean @default(true)
+  updatedAt                DateTime @updatedAt
+}
+
+// ==========================================================================
+// 6b. AuditLog — append-only (só create; nunca update/delete)
+// ==========================================================================
+// Registra ações sensíveis (ex.: troca de chave de API). `valorAnterior` /
+// `valorNovo` guardam JSON mascarado — segredos nunca entram em claro.
+
+model AuditLog {
+  id            Int      @id @default(autoincrement())
+  autorId       Int?
+  acao          String   // ex: "integracao.update", "priceConfig.update"
+  entidade      String   // ex: "ConfiguracaoIntegracao", "PriceConfig"
+  entidadeId    Int?
+  valorAnterior String?  // JSON mascarado
+  valorNovo     String?  // JSON mascarado
+  justificativa String?
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  autor Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+
+  @@index([autorId])
+  @@index([acao])
+  @@index([entidade])
+  @@index([createdAt])
+}
+
+// ==========================================================================
+// 7. Todo — placeholder (manter compat com o que já existia)
+// ==========================================================================
+
+model Todo {
+  id        Int      @id @default(autoincrement())
+  title     String
+  createdAt DateTime @default(now())
+}

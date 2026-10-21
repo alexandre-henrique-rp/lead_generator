@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - esbuild
+  - lightningcss
+  - "@prisma/engines"
+  - prisma
+  - better-sqlite3
