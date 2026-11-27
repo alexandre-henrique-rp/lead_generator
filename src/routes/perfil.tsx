@@ -1,19 +1,17 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import AppShell from "#/componentes/layout/app_shell";
 import Button from "#/componentes/ux/button";
 import { getMeServerFn, updateMeServerFn } from "#/api/operador";
 import { logoutServerFn } from "#/api/auth";
+import { requireUserOrRedirect } from "#/lib/auth-helper";
+import { maskCpfCnpj, maskPhone } from "#/lib/masks";
 import { authKeys, operadorKeys } from "#/lib/query-keys";
 
 export const Route = createFileRoute("/perfil")({
-  beforeLoad: async () => {
-    const { usuario } = await getMeServerFn();
-    if (!usuario) {
-      throw redirect({ to: "/login" });
-    }
-  },
+  beforeLoad: ({ location }) =>
+    requireUserOrRedirect("/login", location.pathname),
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData({
       queryKey: operadorKeys.me(),
@@ -138,9 +136,9 @@ function PerfilPage() {
             </span>
             <input
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={(e) => setTelefone(maskPhone(e.target.value))}
               placeholder="(00) 00000-0000"
-              className="w-full mt-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+              className="w-full mt-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono"
             />
           </label>
 
@@ -150,9 +148,9 @@ function PerfilPage() {
             </span>
             <input
               value={cnpj}
-              onChange={(e) => setCnpj(e.target.value)}
+              onChange={(e) => setCnpj(maskCpfCnpj(e.target.value))}
               placeholder="00.000.000/0000-00"
-              className="w-full mt-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+              className="w-full mt-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono"
             />
           </label>
 

@@ -129,6 +129,11 @@ export type LeadMinAggregateOutputType = {
   quantidadeFuncionarios: number | null
   dddFax: string | null
   descricaoMotivoSituacaoCadastral: string | null
+  mensagemIa: string | null
+  assuntoEmailIa: string | null
+  canalMensagemIa: string | null
+  templateHtmlIa: string | null
+  oportunidadesIa: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -206,6 +211,11 @@ export type LeadMaxAggregateOutputType = {
   quantidadeFuncionarios: number | null
   dddFax: string | null
   descricaoMotivoSituacaoCadastral: string | null
+  mensagemIa: string | null
+  assuntoEmailIa: string | null
+  canalMensagemIa: string | null
+  templateHtmlIa: string | null
+  oportunidadesIa: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -283,6 +293,11 @@ export type LeadCountAggregateOutputType = {
   quantidadeFuncionarios: number
   dddFax: number
   descricaoMotivoSituacaoCadastral: number
+  mensagemIa: number
+  assuntoEmailIa: number
+  canalMensagemIa: number
+  templateHtmlIa: number
+  oportunidadesIa: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -392,6 +407,11 @@ export type LeadMinAggregateInputType = {
   quantidadeFuncionarios?: true
   dddFax?: true
   descricaoMotivoSituacaoCadastral?: true
+  mensagemIa?: true
+  assuntoEmailIa?: true
+  canalMensagemIa?: true
+  templateHtmlIa?: true
+  oportunidadesIa?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -469,6 +489,11 @@ export type LeadMaxAggregateInputType = {
   quantidadeFuncionarios?: true
   dddFax?: true
   descricaoMotivoSituacaoCadastral?: true
+  mensagemIa?: true
+  assuntoEmailIa?: true
+  canalMensagemIa?: true
+  templateHtmlIa?: true
+  oportunidadesIa?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -546,6 +571,11 @@ export type LeadCountAggregateInputType = {
   quantidadeFuncionarios?: true
   dddFax?: true
   descricaoMotivoSituacaoCadastral?: true
+  mensagemIa?: true
+  assuntoEmailIa?: true
+  canalMensagemIa?: true
+  templateHtmlIa?: true
+  oportunidadesIa?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -710,6 +740,11 @@ export type LeadGroupByOutputType = {
   quantidadeFuncionarios: number | null
   dddFax: string | null
   descricaoMotivoSituacaoCadastral: string | null
+  mensagemIa: string | null
+  assuntoEmailIa: string | null
+  canalMensagemIa: string | null
+  templateHtmlIa: string | null
+  oportunidadesIa: string | null
   createdAt: Date
   updatedAt: Date
   _count: LeadCountAggregateOutputType | null
@@ -810,6 +845,11 @@ export type LeadWhereInput = {
   quantidadeFuncionarios?: Prisma.IntNullableFilter<"Lead"> | number | null
   dddFax?: Prisma.StringNullableFilter<"Lead"> | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.StringNullableFilter<"Lead"> | string | null
+  mensagemIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  assuntoEmailIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  canalMensagemIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  templateHtmlIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  oportunidadesIa?: Prisma.StringNullableFilter<"Lead"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   projetos?: Prisma.ProjetoListRelationFilter
@@ -892,6 +932,11 @@ export type LeadOrderByWithRelationInput = {
   quantidadeFuncionarios?: Prisma.SortOrderInput | Prisma.SortOrder
   dddFax?: Prisma.SortOrderInput | Prisma.SortOrder
   descricaoMotivoSituacaoCadastral?: Prisma.SortOrderInput | Prisma.SortOrder
+  mensagemIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  assuntoEmailIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  canalMensagemIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  templateHtmlIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  oportunidadesIa?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projetos?: Prisma.ProjetoOrderByRelationAggregateInput
@@ -977,6 +1022,11 @@ export type LeadWhereUniqueInput = Prisma.AtLeast<{
   quantidadeFuncionarios?: Prisma.IntNullableFilter<"Lead"> | number | null
   dddFax?: Prisma.StringNullableFilter<"Lead"> | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.StringNullableFilter<"Lead"> | string | null
+  mensagemIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  assuntoEmailIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  canalMensagemIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  templateHtmlIa?: Prisma.StringNullableFilter<"Lead"> | string | null
+  oportunidadesIa?: Prisma.StringNullableFilter<"Lead"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   projetos?: Prisma.ProjetoListRelationFilter
@@ -1059,6 +1109,11 @@ export type LeadOrderByWithAggregationInput = {
   quantidadeFuncionarios?: Prisma.SortOrderInput | Prisma.SortOrder
   dddFax?: Prisma.SortOrderInput | Prisma.SortOrder
   descricaoMotivoSituacaoCadastral?: Prisma.SortOrderInput | Prisma.SortOrder
+  mensagemIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  assuntoEmailIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  canalMensagemIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  templateHtmlIa?: Prisma.SortOrderInput | Prisma.SortOrder
+  oportunidadesIa?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.LeadCountOrderByAggregateInput
@@ -1144,6 +1199,11 @@ export type LeadScalarWhereWithAggregatesInput = {
   quantidadeFuncionarios?: Prisma.IntNullableWithAggregatesFilter<"Lead"> | number | null
   dddFax?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
+  mensagemIa?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
+  assuntoEmailIa?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
+  canalMensagemIa?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
+  templateHtmlIa?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
+  oportunidadesIa?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Lead"> | Date | string
 }
@@ -1220,6 +1280,11 @@ export type LeadCreateInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoCreateNestedManyWithoutLeadInput
@@ -1302,6 +1367,11 @@ export type LeadUncheckedCreateInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoUncheckedCreateNestedManyWithoutLeadInput
@@ -1383,6 +1453,11 @@ export type LeadUpdateInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUpdateManyWithoutLeadNestedInput
@@ -1465,6 +1540,11 @@ export type LeadUncheckedUpdateInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUncheckedUpdateManyWithoutLeadNestedInput
@@ -1547,6 +1627,11 @@ export type LeadCreateManyInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1623,6 +1708,11 @@ export type LeadUpdateManyMutationInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1700,6 +1790,11 @@ export type LeadUncheckedUpdateManyInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1777,6 +1872,11 @@ export type LeadCountOrderByAggregateInput = {
   quantidadeFuncionarios?: Prisma.SortOrder
   dddFax?: Prisma.SortOrder
   descricaoMotivoSituacaoCadastral?: Prisma.SortOrder
+  mensagemIa?: Prisma.SortOrder
+  assuntoEmailIa?: Prisma.SortOrder
+  canalMensagemIa?: Prisma.SortOrder
+  templateHtmlIa?: Prisma.SortOrder
+  oportunidadesIa?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1869,6 +1969,11 @@ export type LeadMaxOrderByAggregateInput = {
   quantidadeFuncionarios?: Prisma.SortOrder
   dddFax?: Prisma.SortOrder
   descricaoMotivoSituacaoCadastral?: Prisma.SortOrder
+  mensagemIa?: Prisma.SortOrder
+  assuntoEmailIa?: Prisma.SortOrder
+  canalMensagemIa?: Prisma.SortOrder
+  templateHtmlIa?: Prisma.SortOrder
+  oportunidadesIa?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1946,6 +2051,11 @@ export type LeadMinOrderByAggregateInput = {
   quantidadeFuncionarios?: Prisma.SortOrder
   dddFax?: Prisma.SortOrder
   descricaoMotivoSituacaoCadastral?: Prisma.SortOrder
+  mensagemIa?: Prisma.SortOrder
+  assuntoEmailIa?: Prisma.SortOrder
+  canalMensagemIa?: Prisma.SortOrder
+  templateHtmlIa?: Prisma.SortOrder
+  oportunidadesIa?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -2139,6 +2249,11 @@ export type LeadCreateWithoutInteracoesInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoCreateNestedManyWithoutLeadInput
@@ -2220,6 +2335,11 @@ export type LeadUncheckedCreateWithoutInteracoesInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoUncheckedCreateNestedManyWithoutLeadInput
@@ -2316,6 +2436,11 @@ export type LeadUpdateWithoutInteracoesInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUpdateManyWithoutLeadNestedInput
@@ -2397,6 +2522,11 @@ export type LeadUncheckedUpdateWithoutInteracoesInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUncheckedUpdateManyWithoutLeadNestedInput
@@ -2477,6 +2607,11 @@ export type LeadCreateWithoutSociosInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoCreateNestedManyWithoutLeadInput
@@ -2558,6 +2693,11 @@ export type LeadUncheckedCreateWithoutSociosInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoUncheckedCreateNestedManyWithoutLeadInput
@@ -2654,6 +2794,11 @@ export type LeadUpdateWithoutSociosInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUpdateManyWithoutLeadNestedInput
@@ -2735,6 +2880,11 @@ export type LeadUncheckedUpdateWithoutSociosInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUncheckedUpdateManyWithoutLeadNestedInput
@@ -2815,6 +2965,11 @@ export type LeadCreateWithoutCnpjConsultasInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoCreateNestedManyWithoutLeadInput
@@ -2896,6 +3051,11 @@ export type LeadUncheckedCreateWithoutCnpjConsultasInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoUncheckedCreateNestedManyWithoutLeadInput
@@ -2992,6 +3152,11 @@ export type LeadUpdateWithoutCnpjConsultasInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUpdateManyWithoutLeadNestedInput
@@ -3073,6 +3238,11 @@ export type LeadUncheckedUpdateWithoutCnpjConsultasInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUncheckedUpdateManyWithoutLeadNestedInput
@@ -3153,6 +3323,11 @@ export type LeadCreateWithoutPesquisaInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoCreateNestedManyWithoutLeadInput
@@ -3234,6 +3409,11 @@ export type LeadUncheckedCreateWithoutPesquisaInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projetos?: Prisma.ProjetoUncheckedCreateNestedManyWithoutLeadInput
@@ -3330,6 +3510,11 @@ export type LeadUpdateWithoutPesquisaInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUpdateManyWithoutLeadNestedInput
@@ -3411,6 +3596,11 @@ export type LeadUncheckedUpdateWithoutPesquisaInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projetos?: Prisma.ProjetoUncheckedUpdateManyWithoutLeadNestedInput
@@ -3491,6 +3681,11 @@ export type LeadCreateWithoutProjetosInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   socios?: Prisma.SocioCreateNestedManyWithoutLeadInput
@@ -3572,6 +3767,11 @@ export type LeadUncheckedCreateWithoutProjetosInput = {
   quantidadeFuncionarios?: number | null
   dddFax?: string | null
   descricaoMotivoSituacaoCadastral?: string | null
+  mensagemIa?: string | null
+  assuntoEmailIa?: string | null
+  canalMensagemIa?: string | null
+  templateHtmlIa?: string | null
+  oportunidadesIa?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   socios?: Prisma.SocioUncheckedCreateNestedManyWithoutLeadInput
@@ -3668,6 +3868,11 @@ export type LeadUpdateWithoutProjetosInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   socios?: Prisma.SocioUpdateManyWithoutLeadNestedInput
@@ -3749,6 +3954,11 @@ export type LeadUncheckedUpdateWithoutProjetosInput = {
   quantidadeFuncionarios?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   dddFax?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricaoMotivoSituacaoCadastral?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assuntoEmailIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canalMensagemIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateHtmlIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  oportunidadesIa?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   socios?: Prisma.SocioUncheckedUpdateManyWithoutLeadNestedInput
@@ -3888,6 +4098,11 @@ export type LeadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   quantidadeFuncionarios?: boolean
   dddFax?: boolean
   descricaoMotivoSituacaoCadastral?: boolean
+  mensagemIa?: boolean
+  assuntoEmailIa?: boolean
+  canalMensagemIa?: boolean
+  templateHtmlIa?: boolean
+  oportunidadesIa?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   projetos?: boolean | Prisma.Lead$projetosArgs<ExtArgs>
@@ -3971,6 +4186,11 @@ export type LeadSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   quantidadeFuncionarios?: boolean
   dddFax?: boolean
   descricaoMotivoSituacaoCadastral?: boolean
+  mensagemIa?: boolean
+  assuntoEmailIa?: boolean
+  canalMensagemIa?: boolean
+  templateHtmlIa?: boolean
+  oportunidadesIa?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["lead"]>
@@ -4048,6 +4268,11 @@ export type LeadSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   quantidadeFuncionarios?: boolean
   dddFax?: boolean
   descricaoMotivoSituacaoCadastral?: boolean
+  mensagemIa?: boolean
+  assuntoEmailIa?: boolean
+  canalMensagemIa?: boolean
+  templateHtmlIa?: boolean
+  oportunidadesIa?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["lead"]>
@@ -4125,11 +4350,16 @@ export type LeadSelectScalar = {
   quantidadeFuncionarios?: boolean
   dddFax?: boolean
   descricaoMotivoSituacaoCadastral?: boolean
+  mensagemIa?: boolean
+  assuntoEmailIa?: boolean
+  canalMensagemIa?: boolean
+  templateHtmlIa?: boolean
+  oportunidadesIa?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LeadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uuid" | "nome" | "razaoSocial" | "emails" | "telefone" | "telefoneNorm" | "cnpj" | "cnpjNorm" | "cpf" | "cep" | "logradouro" | "numero" | "bairro" | "cidade" | "uf" | "telefoneCelular" | "telefoneFixo" | "origem" | "etapaFunil" | "score" | "observacoes" | "temWhatsapp" | "isActive" | "nomeFantasia" | "identificadorMatrizFilial" | "descricaoMatrizFilial" | "situacaoCadastral" | "descricaoSituacaoCadastral" | "dataSituacaoCadastral" | "motivoSituacaoCadastral" | "dataInicioAtividade" | "cnaeFiscal" | "cnaeFiscalDescricao" | "codigoNaturezaJuridica" | "naturezaJuridica" | "capitalSocialCentavos" | "porte" | "codigoPorte" | "descricaoPorte" | "tipoLogradouro" | "complemento" | "codigoMunicipio" | "codigoMunicipioIbge" | "municipio" | "dddTelefone1" | "dddTelefone2" | "emailCnpj" | "email" | "opcaoPeloMei" | "dataOpcaoPeloMei" | "dataExclusaoDoMei" | "opcaoPeloSimples" | "dataOpcaoPeloSimples" | "dataExclusaoDoSimples" | "qualificacaoResponsavel" | "dataUltimaConsultaCnpj" | "jsonCnaesSecundarios" | "jsonRegimeTributario" | "jsonQsa" | "situacaoEspecial" | "dataSituacaoEspecial" | "enteFederativoResponsavel" | "nomeCidadeNoExterior" | "pais" | "codigoPais" | "capitalSocial" | "website" | "faturamentoPresumido" | "quantidadeFuncionarios" | "dddFax" | "descricaoMotivoSituacaoCadastral" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
+export type LeadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uuid" | "nome" | "razaoSocial" | "emails" | "telefone" | "telefoneNorm" | "cnpj" | "cnpjNorm" | "cpf" | "cep" | "logradouro" | "numero" | "bairro" | "cidade" | "uf" | "telefoneCelular" | "telefoneFixo" | "origem" | "etapaFunil" | "score" | "observacoes" | "temWhatsapp" | "isActive" | "nomeFantasia" | "identificadorMatrizFilial" | "descricaoMatrizFilial" | "situacaoCadastral" | "descricaoSituacaoCadastral" | "dataSituacaoCadastral" | "motivoSituacaoCadastral" | "dataInicioAtividade" | "cnaeFiscal" | "cnaeFiscalDescricao" | "codigoNaturezaJuridica" | "naturezaJuridica" | "capitalSocialCentavos" | "porte" | "codigoPorte" | "descricaoPorte" | "tipoLogradouro" | "complemento" | "codigoMunicipio" | "codigoMunicipioIbge" | "municipio" | "dddTelefone1" | "dddTelefone2" | "emailCnpj" | "email" | "opcaoPeloMei" | "dataOpcaoPeloMei" | "dataExclusaoDoMei" | "opcaoPeloSimples" | "dataOpcaoPeloSimples" | "dataExclusaoDoSimples" | "qualificacaoResponsavel" | "dataUltimaConsultaCnpj" | "jsonCnaesSecundarios" | "jsonRegimeTributario" | "jsonQsa" | "situacaoEspecial" | "dataSituacaoEspecial" | "enteFederativoResponsavel" | "nomeCidadeNoExterior" | "pais" | "codigoPais" | "capitalSocial" | "website" | "faturamentoPresumido" | "quantidadeFuncionarios" | "dddFax" | "descricaoMotivoSituacaoCadastral" | "mensagemIa" | "assuntoEmailIa" | "canalMensagemIa" | "templateHtmlIa" | "oportunidadesIa" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
 export type LeadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projetos?: boolean | Prisma.Lead$projetosArgs<ExtArgs>
   socios?: boolean | Prisma.Lead$sociosArgs<ExtArgs>
@@ -4223,6 +4453,11 @@ export type $LeadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     quantidadeFuncionarios: number | null
     dddFax: string | null
     descricaoMotivoSituacaoCadastral: string | null
+    mensagemIa: string | null
+    assuntoEmailIa: string | null
+    canalMensagemIa: string | null
+    templateHtmlIa: string | null
+    oportunidadesIa: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["lead"]>
@@ -4725,6 +4960,11 @@ export interface LeadFieldRefs {
   readonly quantidadeFuncionarios: Prisma.FieldRef<"Lead", 'Int'>
   readonly dddFax: Prisma.FieldRef<"Lead", 'String'>
   readonly descricaoMotivoSituacaoCadastral: Prisma.FieldRef<"Lead", 'String'>
+  readonly mensagemIa: Prisma.FieldRef<"Lead", 'String'>
+  readonly assuntoEmailIa: Prisma.FieldRef<"Lead", 'String'>
+  readonly canalMensagemIa: Prisma.FieldRef<"Lead", 'String'>
+  readonly templateHtmlIa: Prisma.FieldRef<"Lead", 'String'>
+  readonly oportunidadesIa: Prisma.FieldRef<"Lead", 'String'>
   readonly createdAt: Prisma.FieldRef<"Lead", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Lead", 'DateTime'>
 }

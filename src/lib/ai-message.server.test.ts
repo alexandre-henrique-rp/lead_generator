@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { salvarMensagemLeadInputSchema } from "./ai-message";
 import {
 	higienizarTexto,
 	mapearPesquisa,
@@ -267,5 +268,58 @@ describe("normalizarOportunidades", () => {
 			titulo: `Oportunidade ${i}`,
 		}));
 		expect(normalizarOportunidades(muitas)).toHaveLength(5);
+	});
+});
+
+describe("salvarMensagemLeadInputSchema", () => {
+	it("valida payload completo com canal WHATSAPP", () => {
+		const result = salvarMensagemLeadInputSchema.safeParse({
+			leadUuid: "uuid-123",
+			canal: "WHATSAPP",
+			mensagem: "Olá, temos uma oportunidade em TI...",
+			oportunidades: [oportunidadeValida],
+			registrarHistorico: true,
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.canal).toBe("WHATSAPP");
+			expect(result.data.registrarHistorico).toBe(true);
+		}
+	});
+
+	it("valida payload completo com canal EMAIL, assunto e templateHtml", () => {
+		const result = salvarMensagemLeadInputSchema.safeParse({
+			leadUuid: "uuid-456",
+			canal: "EMAIL",
+			mensagem: "Corpo do e-mail persuasivo",
+			assunto: "Redução de 65% nas filas de atendimento",
+			templateHtml: "<html><body>Template King Dev</body></html>",
+			oportunidades: [oportunidadeValida],
+			registrarHistorico: true,
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.canal).toBe("EMAIL");
+			expect(result.data.assunto).toBe("Redução de 65% nas filas de atendimento");
+			expect(result.data.templateHtml).toContain("Template King Dev");
+		}
+	});
+
+	it("rejeita quando mensagem está vazia", () => {
+		const result = salvarMensagemLeadInputSchema.safeParse({
+			leadUuid: "uuid-123",
+			canal: "WHATSAPP",
+			mensagem: "",
+		});
+		expect(result.success).toBe(false);
+	});
+
+	it("rejeita canal inválido", () => {
+		const result = salvarMensagemLeadInputSchema.safeParse({
+			leadUuid: "uuid-123",
+			canal: "TELEGRAM",
+			mensagem: "Teste",
+		});
+		expect(result.success).toBe(false);
 	});
 });

@@ -11,6 +11,16 @@ import {
 import PdfViewer from "#/componentes/ux/pdf-viewer";
 
 export const Route = createFileRoute("/p/proposta/$token")({
+	head: () => ({
+		meta: [
+			{ title: "Proposta Comercial · King Dev Tec" },
+			{
+				name: "description",
+				content: "Proposta Comercial e Escopo Técnico King Dev Tec",
+			},
+			{ name: "robots", content: "noindex, nofollow" },
+		],
+	}),
 	component: PublicPropostaPage,
 });
 
@@ -47,6 +57,7 @@ function PublicPropostaPage() {
 
 	const proposta = propostaQuery.data?.proposta ?? null;
 	const projetoNome = propostaQuery.data?.projetoNome ?? null;
+	const empresa = propostaQuery.data?.empresa ?? null;
 	const motivo = propostaQuery.data?.motivo ?? "NAO_ENCONTRADA";
 
 	if (!proposta) {
@@ -124,6 +135,91 @@ function PublicPropostaPage() {
 						</div>
 					)}
 
+					{/* Dados da Empresa Destinatária e Quadro Societário (QSA) */}
+					{empresa && (
+						<div className="p-5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-4">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+								<div>
+									<span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+										Cliente Destinatário
+									</span>
+									<h3 className="text-base font-bold text-slate-900">
+										{empresa.razaoSocial || empresa.nome}
+									</h3>
+									{empresa.razaoSocial && empresa.razaoSocial !== empresa.nome && (
+										<p className="text-xs text-slate-500 font-medium">
+											Nome Fantasia: {empresa.nome}
+										</p>
+									)}
+								</div>
+								<div className="text-left sm:text-right font-mono text-xs">
+									<span className="text-slate-700 block">
+										CNPJ: <strong className="text-slate-900">{maskCpfCnpj(empresa.cnpj ?? "")}</strong>
+									</span>
+									{(empresa.cidade || empresa.uf) && (
+										<span className="text-slate-500 text-[11px] block">
+											{empresa.cidade}/{empresa.uf}
+										</span>
+									)}
+								</div>
+							</div>
+
+							{/* Quadro de Sócios e Administradores (QSA) */}
+							{empresa.socios && empresa.socios.length > 0 ? (
+								<div>
+									<div className="flex items-center justify-between mb-2.5">
+										<span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+											<span>👥</span> Quadro Societário (QSA da Receita Federal)
+										</span>
+										<span className="text-[10px] font-mono bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+											{empresa.socios.length} {empresa.socios.length === 1 ? "sócio" : "sócios"}
+										</span>
+									</div>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+										{empresa.socios.map((socio) => (
+											<div
+												key={socio.uuid}
+												className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex flex-col justify-between"
+											>
+												<div className="flex items-start justify-between gap-2">
+													<div>
+														<span className="text-xs font-bold text-slate-900 block leading-tight">
+															{socio.nomeSocio}
+														</span>
+														<span className="text-[11px] text-indigo-600 font-medium block mt-0.5">
+															{socio.qualificacaoSocio || "Sócio / Administrador"}
+														</span>
+													</div>
+													{socio.percentualCapital !== null && socio.percentualCapital !== undefined && (
+														<span className="text-[10px] font-mono text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded">
+															{socio.percentualCapital}%
+														</span>
+													)}
+												</div>
+
+												<div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-400">
+													<span>
+														{socio.cnpjCpfDoSocio ? maskCpfCnpj(socio.cnpjCpfDoSocio) : "Documento RFB"}
+													</span>
+													{socio.faixaEtaria && (
+														<span className="text-slate-400">
+															{socio.faixaEtaria}
+														</span>
+													)}
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							) : (
+								<p className="text-xs text-slate-400 italic">
+									Quadro societário não informado ou empresa individual.
+								</p>
+							)}
+						</div>
+					)}
+
 					<div className="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono">
 						<div>
 							<span className="text-[11px] text-slate-500 uppercase block">
@@ -159,6 +255,34 @@ function PublicPropostaPage() {
 								<span className="text-xs font-bold text-slate-800 block">
 									Identificação para Aceite Formal
 								</span>
+								{empresa?.socios && empresa.socios.length > 0 && (
+									<div className="pt-0.5">
+										<span className="text-[11px] text-slate-500 block mb-1.5 font-medium">
+											Preencher rapidamente como sócio da empresa:
+										</span>
+										<div className="flex flex-wrap gap-1.5">
+											{empresa.socios.map((s) => (
+												<button
+													key={s.uuid}
+													type="button"
+													onClick={() => {
+														setNome(s.nomeSocio);
+														if (s.cnpjCpfDoSocio && !s.cnpjCpfDoSocio.includes("*")) {
+															setDoc(s.cnpjCpfDoSocio.replace(/\D/g, ""));
+														}
+													}}
+													className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white hover:bg-indigo-50 hover:border-indigo-300 border border-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+												>
+													<span>👤</span>
+													<span className="font-semibold">{s.nomeSocio}</span>
+													{s.qualificacaoSocio && (
+														<span className="text-slate-400 text-[10px]">({s.qualificacaoSocio})</span>
+													)}
+												</button>
+											))}
+										</div>
+									</div>
+								)}
 								{formError && (
 									<p className="text-xs text-rose-600 font-medium">
 										✕ {formError}

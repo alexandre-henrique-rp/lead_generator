@@ -1,0 +1,17 @@
+{
+  "feature": "cnpj-brasilapi-403-fallback",
+  "timestamp": "2026-10-30T22:07:09.118Z",
+  "gitRev": "4587772",
+  "command": "npm exec -- vitest run --reporter=tap",
+  "reporter": "tap",
+  "exitCode": 0,
+  "testsParsed": 365,
+  "results": {
+    "AC-001": {
+      "status": "pass",
+      "testName": "@spec:AC-001 usa OpenCNPJ quando a BrasilAPI bloqueia o acesso com 403 # time=9.52ms",
+      "method": "tap"
+    }
+  },
+  "principles": {}
+}

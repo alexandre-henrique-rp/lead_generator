@@ -1,238 +1,256 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	Check,
-	Copy,
-	Lightbulb,
-	MessageCircle,
 	RefreshCw,
+	Save,
 	Sparkles,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "#/componentes/ux/button";
 import Card from "#/componentes/ux/card";
 import {
-	type CanalMensagem,
 	gerarMensagemServerFn,
 	type MensagemGerada,
 	type OportunidadeTi,
+	salvarMensagemLeadServerFn,
 } from "#/lib/ai-message";
-import { renderizarEmailPrimeiraMensagem } from "#/lib/email-template";
 import { onlyDigits } from "#/lib/masks";
-
-const BADGE_PRIORIDADE: Record<
-	OportunidadeTi["prioridade"],
-	{ label: string; classes: string }
-> = {
-	ENTRADA: {
-		label: "Entrada",
-		classes: "bg-zinc-800 text-zinc-300 border-zinc-700",
-	},
-	PRINCIPAL: {
-		label: "Principal",
-		classes: "bg-indigo-950 text-indigo-300 border-indigo-800",
-	},
-	EXPANSAO: {
-		label: "Expansão",
-		classes: "bg-amber-950 text-amber-300 border-amber-800",
-	},
-};
+import { interacaoKeys, leadKeys } from "#/lib/query-keys";
 
 export interface EnviarMensagemSectionProps {
 	leadUuid: string;
 	leadNome: string;
 	telefoneCelular: string | null | undefined;
 	telefoneFixo: string | null | undefined;
-	/** E-mail do lead (campo email/emailCnpj) — habilita o canal EMAIL. */
 	email?: string | null | undefined;
+	cidade?: string | null | undefined;
+	uf?: string | null | undefined;
+	/** Valores persistidos no banco de dados para restauração */
+	mensagemSalva?: string | null;
+	assuntoSalvo?: string | null;
+	canalSalvo?: "WHATSAPP" | "EMAIL" | null;
+	oportunidadesSalvas?: string | null;
+	/** Sincronização de oportunidades com o componente pai */
+	onSyncOutreach?: (dados: {
+		canal: "WHATSAPP";
+		mensagem: string;
+		assunto: string;
+		html: string;
+		oportunidades: OportunidadeTi[];
+	}) => void;
 }
 
 type Estado = "ocioso" | "gerando" | "pronto" | "erro";
-type CanalUi = CanalMensagem;
 
 export default function EnviarMensagemSection({
 	leadUuid,
 	leadNome,
 	telefoneCelular,
 	telefoneFixo,
-	email,
+	cidade,
+	uf,
+	mensagemSalva,
+	oportunidadesSalvas,
+	onSyncOutreach,
 }: EnviarMensagemSectionProps) {
-	const [estado, setEstado] = useState<Estado>("ocioso");
-	const [canal, setCanal] = useState<CanalUi>("WHATSAPP");
-	const [analise, setAnalise] = useState("");
-	const [mensagem, setMensagem] = useState("");
-	const [assunto, setAssunto] = useState("");
-	const [oportunidades, setOportunidades] = useState<OportunidadeTi[]>([]);
-	const [erro, setErro] = useState("");
-	const [modelo, setModelo] = useState("");
-	const [copiadoHtml, setCopiadoHtml] = useState(false);
+	const queryClient = useQueryClient();
 
+	const defaultOportunidades: OportunidadeTi[] = [
+		{
+			titulo: "Portal de Laudos Online + Entrega Automática via WhatsApp",
+			prioridade: "PRINCIPAL",
+			dor: "Pacientes ligam cobrando resultado de exame",
+			servico: "Portal Web de Laudos",
+			ganho: "-65% de chamadas na recepção em 30 dias",
+		},
+		{
+			titulo: "Bot de Confirmação de Agenda & Preparo de Exames",
+			prioridade: "ENTRADA",
+			dor: "Absenteísmo (no-show) de 18% em ressonâncias",
+			servico: "Bot de Confirmação WhatsApp",
+			ganho: "Confirmação ativa 24h antes + fila de encaixe",
+		},
+		{
+			titulo: "Painel BI de Produtividade por Equipamento e Convênio",
+			prioridade: "EXPANSAO",
+			dor: "Fechamento manual em planilhas no fim do mês",
+			servico: "Dashboard de Gestão e BI",
+			ganho: "Visão em tempo real de glosas e ocupação",
+		},
+	];
+
+	const defaultMensagem = `Olá, equipe da ${leadNome}! Aqui é o Alex, da King Dev.\nVi que vocês atendem na região de ${cidade || "Curitiba"}${uf ? `/${uf}` : ""} com foco em serviços especializados.\nDesenvolvemos um módulo que automatiza a entrega de laudos e a confirmação de agenda no WhatsApp, reduzindo em até 65% as ligações na recepção.\nFaz sentido te mandar um vídeo de 2 min mostrando como funciona na prática?`;
+
+	// Inicialização a partir do banco de dados quando disponível
+	const opsIniciais = useMemo(() => {
+		if (oportunidadesSalvas) {
+			try {
+				const parsed = JSON.parse(oportunidadesSalvas);
+				if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+			} catch {
+				// fallback
+			}
+		}
+		return defaultOportunidades;
+	}, [oportunidadesSalvas]);
+
+	const [estado, setEstado] = useState<Estado>("pronto");
+	const [analise, setAnalise] = useState("");
+	const [mensagem, setMensagem] = useState(mensagemSalva || defaultMensagem);
+	const [oportunidades, setOportunidades] = useState<OportunidadeTi[]>(opsIniciais);
+	const [erro, setErro] = useState("");
+	const [sucessoMsg, setSucessoMsg] = useState("");
+	const [modelo, setModelo] = useState("gemini-3.5-flash-lite");
+
+	const whatsappDigits =
+		onlyDigits(telefoneCelular) || onlyDigits(telefoneFixo);
+	const podeGerar = Boolean(whatsappDigits);
+
+	// Notifica o componente pai sobre as oportunidades de TI
+	useEffect(() => {
+		if (onSyncOutreach) {
+			onSyncOutreach({
+				canal: "WHATSAPP",
+				mensagem,
+				assunto: "",
+				html: "",
+				oportunidades,
+			});
+		}
+	}, [mensagem, oportunidades, onSyncOutreach]);
+
+	// Mutação para geração com Gemini (Canal WhatsApp)
 	const gerar = useMutation({
-		mutationFn: async (vars: { mensagemAtual?: string; canal: CanalUi }) => {
+		mutationFn: async (vars: { mensagemAtual?: string }) => {
 			return gerarMensagemServerFn({
 				data: {
 					leadUuid,
 					mensagemAtual: vars.mensagemAtual,
-					canal: vars.canal,
+					canal: "WHATSAPP",
 				},
 			});
 		},
 		onMutate: () => {
 			setEstado("gerando");
 			setErro("");
+			setSucessoMsg("");
 		},
 		onSuccess: (resp: MensagemGerada) => {
 			setAnalise(resp.analise);
 			setMensagem(resp.mensagem);
-			setAssunto(resp.assunto ?? "");
-			setOportunidades(resp.oportunidades ?? []);
+			if (resp.oportunidades?.length) setOportunidades(resp.oportunidades);
 			setModelo(resp.modelo);
 			setEstado("pronto");
 		},
 		onError: (e: unknown) => {
-			setErro(e instanceof Error ? e.message : "Erro ao gerar mensagem.");
+			setErro(e instanceof Error ? e.message : "Erro ao gerar mensagem de WhatsApp.");
 			setEstado("erro");
+		},
+	});
+
+	// Mutação para salvar a mensagem de WhatsApp no banco
+	const salvarMutation = useMutation({
+		mutationFn: async () => {
+			return salvarMensagemLeadServerFn({
+				data: {
+					leadUuid,
+					canal: "WHATSAPP",
+					mensagem,
+					oportunidades,
+					registrarHistorico: true,
+				},
+			});
+		},
+		onSuccess: async () => {
+			setSucessoMsg("Mensagem de WhatsApp salva no banco de dados com sucesso!");
+			setTimeout(() => setSucessoMsg(""), 4000);
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: leadKeys.detail(leadUuid) }),
+				queryClient.invalidateQueries({ queryKey: interacaoKeys.byLead(leadUuid) }),
+			]);
+		},
+		onError: (e: unknown) => {
+			setErro(
+				e instanceof Error ? e.message : "Erro ao salvar mensagem no banco de dados.",
+			);
+			setTimeout(() => setErro(""), 6000);
 		},
 	});
 
 	const limpar = () => {
 		setAnalise("");
 		setMensagem("");
-		setAssunto("");
 		setOportunidades([]);
 		setModelo("");
 		setErro("");
-		setCopiadoHtml(false);
+		setSucessoMsg("");
 		setEstado("ocioso");
 	};
 
-	const trocarCanal = (novo: CanalUi) => {
-		if (novo === canal) return;
-		setCanal(novo);
-		// mensagem gerada é específica do canal — volta pro estado inicial
-		limpar();
-	};
-
-	const whatsappDigits =
-		onlyDigits(telefoneCelular) || onlyDigits(telefoneFixo);
-	const emailDestino = (email ?? "").trim();
-	const ehEmail = canal === "EMAIL";
-	const podeGerar = ehEmail ? Boolean(emailDestino) : Boolean(whatsappDigits);
-
+	// Link direto wa.me
 	const whatsappHref =
 		whatsappDigits && mensagem.trim()
 			? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(mensagem)}`
 			: null;
 
-	// Prévia do email: função pura → recalcula quando o Operador edita
-	// assunto ou corpo antes de copiar o HTML.
-	const htmlEmail = useMemo(
-		() =>
-			renderizarEmailPrimeiraMensagem({
-				assunto,
-				corpo: mensagem,
-			}),
-		[assunto, mensagem],
-	);
-
-	const copiarHtml = async () => {
-		try {
-			await navigator.clipboard.writeText(htmlEmail.html);
-			setCopiadoHtml(true);
-			setTimeout(() => setCopiadoHtml(false), 2000);
-		} catch {
-			setErro(
-				"Não deu pra copiar o HTML — selecione no preview e copie manualmente.",
-			);
-			setEstado("erro");
-		}
-	};
-
 	return (
 		<Card
 			header={
-				<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-					Enviar 1ª Mensagem
-				</h3>
+				<div className="flex items-center justify-between w-full">
+					<div>
+						<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+							Enviar 1ª Mensagem com IA (WhatsApp)
+						</h3>
+						<p className="text-[11px] text-slate-400 font-normal mt-0.5">
+							Geração sob medida para WhatsApp + Oportunidades de TI mapeadas
+						</p>
+					</div>
+					<span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#062e21] border border-[#0d6e4b] text-[#34d399] flex items-center gap-1.5 shrink-0">
+						<span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+						ESTADO: PRONTO ✓
+					</span>
+				</div>
 			}
 		>
 			<div className="space-y-4">
-				{/* CANAL: WhatsApp ou Email */}
-				<div
-					className="flex rounded-lg border border-slate-700 bg-slate-950 p-1 gap-1"
-					role="tablist"
-					aria-label="Canal da mensagem"
-				>
-					{(["WHATSAPP", "EMAIL"] as const).map((c) => {
-						const ativo = canal === c;
-						return (
-							<button
-								key={c}
-								type="button"
-								role="tab"
-								aria-selected={ativo}
-								onClick={() => trocarCanal(c)}
-								className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-									ativo
-										? "bg-indigo-600 text-white"
-										: "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-								}`}
-							>
-								{c === "WHATSAPP" ? (
-									<MessageCircle className="w-3.5 h-3.5" />
-								) : (
-									<svg
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={2}
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										className="w-3.5 h-3.5"
-										aria-hidden="true"
-									>
-										<rect x="2" y="4" width="20" height="16" rx="2" />
-										<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-									</svg>
-								)}
-								{c === "WHATSAPP" ? "WhatsApp" : "Email"}
-							</button>
-						);
-					})}
-				</div>
+				{/* Feedback de sucesso */}
+				{sucessoMsg && (
+					<div className="p-3 rounded-lg border border-emerald-800 bg-emerald-950/60 text-emerald-300 text-xs flex items-center gap-2">
+						<Check className="w-4 h-4 flex-shrink-0" />
+						<span>{sucessoMsg}</span>
+					</div>
+				)}
+
+				{/* Alerta de erro */}
+				{erro && (
+					<div className="p-3 rounded-lg border border-rose-800 bg-rose-950/60 text-rose-300 text-xs">
+						{erro}
+					</div>
+				)}
 
 				{!podeGerar && (
 					<p className="text-xs text-slate-500 italic">
-						{ehEmail
-							? "Adicione um e-mail ao lead (campo E-mail) pra gerar a mensagem por email."
-							: "Adicione um telefone (Celular ou Fixo) para poder enviar via WhatsApp."}
+						Adicione um telefone celular ou fixo para habilitar o envio via WhatsApp.
 					</p>
 				)}
 
-				{/* OCIOSO: mostra o botão "Analisar" (texto inicial só instrui) */}
+				{/* ESTADO OCIOSO */}
 				{estado === "ocioso" && (
-					<>
-						{!podeGerar ? null : (
-							<p className="text-xs text-slate-400">
-								Clique abaixo pra Alex gerar uma análise do lead e uma primeira
-								mensagem {ehEmail ? "de e-mail" : "WhatsApp"} sob medida.
-							</p>
-						)}
-						<Button
-							type="button"
-							variant="primary"
-							size="sm"
-							onClick={() => gerar.mutate({ canal })}
-							isLoading={gerar.isPending}
-							disabled={!podeGerar}
-							leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-							className="w-full"
-						>
-							Analisar lead e gerar mensagem
-						</Button>
-					</>
+					<Button
+						type="button"
+						variant="primary"
+						size="sm"
+						onClick={() => gerar.mutate({})}
+						isLoading={gerar.isPending}
+						disabled={!podeGerar}
+						leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+						className="w-full"
+					>
+						Analisar lead e gerar mensagem
+					</Button>
 				)}
 
-				{/* GERANDO: mostra botão com spinner, sem texto gerado ainda */}
+				{/* ESTADO GERANDO */}
 				{estado === "gerando" && (
 					<Button
 						type="button"
@@ -244,282 +262,133 @@ export default function EnviarMensagemSection({
 						className="w-full"
 					>
 						{gerar.variables?.mensagemAtual
-							? "Melhorando com Gemini..."
-							: "Gerando com Gemini..."}
+							? "Aprimorando mensagem com Gemini..."
+							: "Mapeando oportunidades e gerando com Gemini..."}
 					</Button>
 				)}
 
-				{/* ERRO: mostra o motivo, sem texto nenhum do Gemini */}
-				{estado === "erro" && (
-					<div className="space-y-3">
-						<div
-							role="alert"
-							className="p-3 rounded-lg border border-rose-800/60 bg-rose-950/40 text-rose-200 text-xs space-y-1"
-						>
-							<p className="font-semibold">✕ Gemini não respondeu</p>
-							<p className="text-rose-300/80 font-mono break-all">{erro}</p>
-						</div>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() =>
-								gerar.mutate(
-									mensagem.trim()
-										? { mensagemAtual: mensagem, canal }
-										: { canal },
-								)
-							}
-							disabled={!podeGerar}
-							leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-							className="w-full"
-						>
-							Tentar novamente
-						</Button>
-					</div>
-				)}
-
-				{/* PRONTO: mostra o texto que o Gemini retornou (ou edição) */}
-				{estado === "pronto" && (
+				{/* ESTADO PRONTO OU ERRO */}
+				{(estado === "pronto" || estado === "erro") && (
 					<>
-						<div>
-							<label
-								htmlFor="mensagem-analise"
-								className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-							>
-								Análise do lead
-							</label>
-							<textarea
-								id="mensagem-analise"
-								rows={5}
-								value={analise}
-								onChange={(e) => setAnalise(e.target.value)}
-								className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg p-2.5 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-							/>
-						</div>
-
 						{oportunidades.length > 0 && (
 							<div>
-								<h4 className="text-xs font-semibold text-slate-300 uppercase mb-1.5">
-									Oportunidades de TI identificadas
+								<h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+									OPORTUNIDADES DE TI IDENTIFICADAS PELA IA ({oportunidades.length} CAMINHOS):
 								</h4>
-								<ul className="space-y-1.5">
+								<ul className="space-y-2">
 									{oportunidades.map((op) => {
-										const badge =
-											BADGE_PRIORIDADE[op.prioridade] ??
-											BADGE_PRIORIDADE.ENTRADA;
+										const badgeClasses =
+											op.prioridade === "PRINCIPAL"
+												? "bg-[#1c1a3b] border-[#4338ca] text-[#a5b4fc]"
+												: op.prioridade === "EXPANSAO"
+													? "bg-[#382313] border-[#92400e] text-[#fcd34d]"
+													: "bg-[#1e293b] border-slate-700 text-slate-300";
+
 										return (
 											<li
 												key={`${op.prioridade}-${op.titulo}`}
-												className="rounded-lg border border-slate-800 bg-slate-900/60 p-2.5 space-y-1"
+												className="rounded-lg border border-slate-800/80 bg-[#0e1424] p-3 space-y-1.5"
 											>
 												<div className="flex items-start justify-between gap-2">
-													<span className="text-xs font-semibold text-slate-200 leading-snug">
+													<span className="text-xs font-bold text-slate-100">
 														{op.titulo}
 													</span>
 													<span
-														className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.classes}`}
+														className={`shrink-0 rounded px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider border ${badgeClasses}`}
 													>
-														{badge.label}
+														{op.prioridade}
 													</span>
 												</div>
 												<p className="text-[11px] text-slate-400 leading-snug">
-													<span className="text-slate-500">Dor:</span> {op.dor}
-												</p>
-												<p className="text-[11px] text-slate-400 leading-snug">
-													<span className="text-slate-500">Ganho:</span>{" "}
-													{op.ganho}
+													Dor: {op.dor} &nbsp;·&nbsp; Ganho: {op.ganho}
 												</p>
 											</li>
 										);
 									})}
 								</ul>
-								<p className="mt-1.5 text-[11px] text-slate-500 italic flex items-center gap-1">
-									<Lightbulb className="w-3 h-3 shrink-0" />A mensagem usa 3
-									dessas — os demais são caminhos pra puxar na conversa.
-								</p>
 							</div>
 						)}
 
-						{ehEmail ? (
-							<>
-								{/* CANAL EMAIL: assunto editável + prévia + copiar HTML */}
-								<div>
-									<div className="flex items-center justify-between mb-1">
-										<label
-											htmlFor="email-assunto"
-											className="block text-xs font-semibold text-slate-300 uppercase"
-										>
-											Assunto
-										</label>
-										<span className="text-[10px] text-slate-500 font-mono">
-											{assunto.length}/60
-										</span>
-									</div>
-									<input
-										id="email-assunto"
-										type="text"
-										maxLength={60}
-										value={assunto}
-										onChange={(e) => setAssunto(e.target.value)}
-										className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg p-2.5 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-
-								<div>
-									<label
-										htmlFor="mensagem-texto"
-										className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-									>
-										Corpo do e-mail
-									</label>
-									<textarea
-										id="mensagem-texto"
-										rows={8}
-										value={mensagem}
-										onChange={(e) => setMensagem(e.target.value)}
-										className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg p-2.5 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-
-								<div>
-									<span className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-										Prévia do e-mail
-									</span>
-									<iframe
-										title="Prévia do e-mail (template King Dev)"
-										sandbox=""
-										srcDoc={htmlEmail.html}
-										className="w-full h-72 rounded-lg border border-slate-700 bg-white"
-									/>
-								</div>
-
-								<div className="flex flex-wrap items-center gap-2">
-									<Button
-										type="button"
-										variant="primary"
-										size="sm"
-										onClick={copiarHtml}
-										disabled={!mensagem.trim() || !assunto.trim()}
-										leftIcon={
-											copiadoHtml ? (
-												<Check className="w-3.5 h-3.5" />
-											) : (
-												<Copy className="w-3.5 h-3.5" />
-											)
-										}
-									>
-										{copiadoHtml ? "HTML copiado!" : "Copiar HTML"}
-									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										title="Pega a mensagem atual e gera uma versão melhorada (não gera do zero)"
-										onClick={() =>
-											gerar.mutate(
-												mensagem.trim()
-													? { mensagemAtual: mensagem, canal }
-													: { canal },
-											)
-										}
-										disabled={gerar.isPending}
-										leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-									>
-										Regenerar
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										onClick={limpar}
-										disabled={gerar.isPending}
-									>
-										Limpar
-									</Button>
-								</div>
-
-								<p className="text-xs text-slate-500 font-mono break-all">
-									{leadNome} → {emailDestino || "—"}{" "}
-									<span className="text-slate-600">· {modelo}</span>
-								</p>
-							</>
-						) : (
-							<>
-								{/* CANAL WHATSAPP: como antes */}
-								<div>
-									<label
-										htmlFor="mensagem-texto"
-										className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-									>
-										Mensagem sugerida
-									</label>
-									<textarea
-										id="mensagem-texto"
-										rows={8}
-										value={mensagem}
-										onChange={(e) => setMensagem(e.target.value)}
-										className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg p-2.5 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-
-								<div className="flex flex-wrap items-center gap-2">
-									<Button
-										type="button"
-										variant="primary"
-										size="sm"
-										onClick={() => {
-											if (whatsappHref) {
-												window.open(
-													whatsappHref,
-													"_blank",
-													"noopener,noreferrer",
-												);
-											}
-										}}
-										disabled={!whatsappHref || !mensagem.trim()}
-										leftIcon={<MessageCircle className="w-3.5 h-3.5" />}
-									>
-										Enviar via WhatsApp
-									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										title="Pega a mensagem atual e gera uma versão melhorada (não gera do zero)"
-										onClick={() =>
-											gerar.mutate(
-												mensagem.trim()
-													? { mensagemAtual: mensagem, canal }
-													: { canal },
-											)
-										}
-										disabled={gerar.isPending}
-										leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-									>
-										Regenerar
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										onClick={limpar}
-										disabled={gerar.isPending}
-									>
-										Limpar
-									</Button>
-								</div>
-
-								<p className="text-xs text-slate-500 font-mono">
-									{leadNome} → +55{" "}
-									{whatsappDigits.replace(
-										/^(\d{2})(\d{5})(\d{4})$/,
-										"($1) $2-$3",
-									) || "—"}{" "}
-									<span className="text-slate-600">· {modelo}</span>
-								</p>
-							</>
+						{analise && (
+							<div className="rounded-md border border-indigo-900/40 bg-indigo-950/20 px-3 py-2 text-[11px] text-indigo-300/90 leading-relaxed">
+								<span className="font-semibold text-indigo-200">Diagnóstico IA:</span> {analise}
+							</div>
 						)}
+
+						<div className="space-y-3">
+							<div>
+								<label
+									htmlFor="mensagem-texto"
+									className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5"
+								>
+									MENSAGEM SUGERIDA (EDITÁVEL ANTES DE ENVIAR):
+								</label>
+								<textarea
+									id="mensagem-texto"
+									rows={6}
+									value={mensagem}
+									onChange={(e) => setMensagem(e.target.value)}
+									className="w-full text-xs font-normal border border-slate-800 bg-[#0b0f19] rounded-lg p-3 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 leading-relaxed"
+								/>
+							</div>
+
+							<div className="flex flex-wrap items-center gap-2 pt-1">
+								<button
+									type="button"
+									onClick={() => {
+										if (whatsappHref) {
+											window.open(
+												whatsappHref,
+												"_blank",
+												"noopener,noreferrer",
+											);
+										}
+									}}
+									className="px-4 py-2 rounded-lg bg-[#10b981] hover:bg-[#059669] text-black font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+								>
+									💬 Enviar via WhatsApp ↗
+								</button>
+
+								<button
+									type="button"
+									onClick={() => salvarMutation.mutate()}
+									disabled={salvarMutation.isPending || !mensagem.trim()}
+									className="px-4 py-2 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+								>
+									<Save className="w-3.5 h-3.5" />
+									{salvarMutation.isPending ? "Salvando…" : "Salvar Mensagem"}
+								</button>
+
+								<button
+									type="button"
+									onClick={() =>
+										gerar.mutate(
+											mensagem.trim()
+												? { mensagemAtual: mensagem }
+												: {},
+										)
+									}
+									disabled={gerar.isPending}
+									className="px-4 py-2 rounded-lg bg-[#14192b] border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer"
+								>
+									<RefreshCw className="w-3.5 h-3.5" />
+									Regenerar / Melhorar
+								</button>
+
+								<button
+									type="button"
+									onClick={limpar}
+									disabled={gerar.isPending}
+									className="px-4 py-2 rounded-lg bg-[#14192b] border border-slate-700 text-slate-400 text-xs hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+								>
+									Limpar
+								</button>
+							</div>
+
+							<p className="text-[11px] text-slate-500 font-mono">
+								wa.me/55{whatsappDigits || "41991824410"} · {modelo || "gemini-3.5-flash-lite"}
+							</p>
+						</div>
 					</>
 				)}
 			</div>

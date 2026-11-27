@@ -497,11 +497,18 @@ function LeadsGarimpoPage() {
 						: "Importação em massa via CSV"
 			}
 			actions={
-				<Link to="/leads">
-					<Button variant="outline" size="sm">
-						← Voltar para Leads
-					</Button>
-				</Link>
+				<div className="flex items-center gap-2">
+					<Link to="/leads/funil">
+						<Button variant="outline" size="sm" className="text-slate-300">
+							⊞ Ver Funil
+						</Button>
+					</Link>
+					<Link to="/leads">
+						<Button variant="outline" size="sm">
+							← Voltar para Leads
+						</Button>
+					</Link>
+				</div>
 			}
 		>
 			<div className="max-w-5xl mx-auto space-y-6">

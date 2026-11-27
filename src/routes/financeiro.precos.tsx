@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AppShell from "#/componentes/layout/app_shell";
@@ -10,14 +10,12 @@ import {
   restorePriceConfigDefaultsServerFn,
   type PriceConfig,
 } from "#/api/config";
-import { getCurrentUserServerFn } from "#/api/auth";
+import { requireUserOrRedirect } from "#/lib/auth-helper";
 import { configKeys } from "#/lib/query-keys";
 
 export const Route = createFileRoute("/financeiro/precos")({
-  beforeLoad: async () => {
-    const { user } = await getCurrentUserServerFn();
-    if (!user) throw redirect({ to: "/login" });
-  },
+  beforeLoad: ({ location }) =>
+    requireUserOrRedirect("/login", location.pathname),
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData({
       queryKey: configKeys.priceConfig(),

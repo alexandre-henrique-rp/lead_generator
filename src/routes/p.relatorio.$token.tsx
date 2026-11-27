@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/p/relatorio/$token")({
+  head: () => ({
+    meta: [
+      { title: "Relatório de Acompanhamento do Projeto · King Dev Tec" },
+      {
+        name: "description",
+        content: "Relatório de Acompanhamento e Entregas do Projeto King Dev Tec",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: PublicRelatorioPage,
 });
 

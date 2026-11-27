@@ -67,3 +67,63 @@ export const gerarMensagemServerFn = createServerFn({ method: "POST" })
 			canal: data.canal ?? "WHATSAPP",
 		});
 	});
+
+export const salvarMensagemLeadInputSchema = z.object({
+	leadUuid: z.string().min(1),
+	canal: z.enum(CANAIS_MENSAGEM),
+	mensagem: z.string().min(1, "A mensagem não pode ficar vazia."),
+	assunto: z.string().optional(),
+	templateHtml: z.string().optional(),
+	oportunidades: z.array(z.any()).optional(),
+	registrarHistorico: z.boolean().optional(),
+});
+
+export type SalvarMensagemLeadInput = z.infer<
+	typeof salvarMensagemLeadInputSchema
+>;
+
+export const salvarMensagemLeadServerFn = createServerFn({ method: "POST" })
+	.validator(salvarMensagemLeadInputSchema)
+	.handler(async ({ data }) => {
+		const { prisma } = await import("#/db");
+
+		const lead = await prisma.lead.findUnique({
+			where: { uuid: data.leadUuid },
+			select: { id: true, uuid: true, nome: true },
+		});
+		if (!lead) throw new Error("Lead não encontrado.");
+
+		await prisma.lead.update({
+			where: { id: lead.id },
+			data: {
+				mensagemIa: data.mensagem,
+				assuntoEmailIa: data.assunto || null,
+				canalMensagemIa: data.canal,
+				templateHtmlIa: data.templateHtml || null,
+				oportunidadesIa: data.oportunidades
+					? JSON.stringify(data.oportunidades)
+					: null,
+			},
+		});
+
+		if (data.registrarHistorico) {
+			const resumoNota =
+				data.canal === "EMAIL"
+					? `Template de E-mail comercial e mensagem salvos (Assunto: ${data.assunto ?? "Sem assunto"}).`
+					: `Mensagem de WhatsApp e oportunidades de TI salvas.`;
+
+			await prisma.interacaoLead.create({
+				data: {
+					leadId: lead.id,
+					tipo: data.canal === "EMAIL" ? "NOTA" : "WHATSAPP",
+					resumo: resumoNota,
+				},
+			});
+		}
+
+		return {
+			ok: true,
+			leadUuid: lead.uuid,
+			mensagem: "Mensagem e template salvos no banco com sucesso!",
+		};
+	});

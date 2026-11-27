@@ -12,6 +12,7 @@ import { createHash } from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { consultarCnpjComFallback } from "#/lib/cnpj-provider";
 import {
 	estimarPorteEFaturamento,
 	inferirWebsiteDeEmail,
@@ -161,10 +162,9 @@ async function requireAuth(): Promise<{
 /**
  * Consulta CNPJ com fallback automático BrasilAPI → OpenCNPJ.
  *
- * Tenta primeiro a BrasilAPI (configurável via CNPJ_API_URL). Se der 5xx
- * persistente após retries, cai automaticamente pro OpenCNPJ
- * (https://api.opencnpj.org/{cnpj}) como fallback. OpenCNPJ é gratuito,
- * sem chave de API, e costuma estar disponível quando BrasilAPI cai.
+ * Tenta primeiro a BrasilAPI (configurável via CNPJ_API_URL). Se ela bloquear
+ * este servidor (403), der 5xx persistente ou falhar por rede, cai para
+ * OpenCNPJ (https://api.opencnpj.org/{cnpj}) como fallback.
  *
  * Retry com backoff exponencial para 5xx e erros de rede (transitórios)
  * em cada provedor. Não faz retry em 4xx (erros definitivos).
@@ -179,27 +179,14 @@ async function consultarCnpjNaApi(cnpj: string): Promise<{
 	data: CnpjApiResponse;
 	fonte: "BRASILAPI" | "OPEN_CNPJ" | "RECEITAWS";
 }> {
-	try {
-		const data = await consultarCnpjBrasilAPI(cnpj);
-		return { data, fonte: "BRASILAPI" };
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		const ehRecuperavel =
-			msg.startsWith("API_ERROR:5") ||
-			msg.startsWith("NETWORK_ERROR") ||
-			msg === "fetch failed" ||
-			msg.includes("ECONNREFUSED") ||
-			msg.includes("ETIMEDOUT") ||
-			msg.includes("ENOTFOUND");
-		if (!ehRecuperavel) throw err;
-		console.log(
-			`[cnpj-api] BrasilAPI falhou com erro recuperável (${msg}) — tentando OpenCNPJ`,
-		);
-	}
-
-	// Fallback: OpenCNPJ (mesma estrutura de retry)
-	const data = await consultarCnpjOpenCNPJ(cnpj);
-	return { data, fonte: "OPEN_CNPJ" };
+	return consultarCnpjComFallback(
+		() => consultarCnpjBrasilAPI(cnpj),
+		() => consultarCnpjOpenCNPJ(cnpj),
+		(err) => {
+			const msg = err instanceof Error ? err.message : String(err);
+			console.log(`[cnpj-api] BrasilAPI falhou (${msg}) — tentando OpenCNPJ`);
+		},
+	);
 }
 
 /**
@@ -821,6 +808,13 @@ export const atualizarLeadCnpjServerFn = createServerFn({ method: "POST" })
 						fonte: fonteUsada,
 						ip: ip ?? undefined,
 						userAgent: userAgent ?? undefined,
+					},
+				}),
+				prisma.interacaoLead.create({
+					data: {
+						leadId: lead.id,
+						tipo: "BRASILAPI",
+						resumo: `Dados da Receita Federal sincronizados (Capital Social R$ ${apiData.capital_social ? apiData.capital_social.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "0,00"} · ${(apiData.qsa ?? []).length} sócios no QSA).`,
 					},
 				}),
 			]);

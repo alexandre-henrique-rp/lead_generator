@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import AppShell from "#/componentes/layout/app_shell";
@@ -10,14 +10,12 @@ import {
   marcarParcelaPagaServerFn,
   type ParcelaItem,
 } from "#/api/financeiro";
-import { getCurrentUserServerFn } from "#/api/auth";
+import { requireUserOrRedirect } from "#/lib/auth-helper";
 import { parcelaKeys } from "#/lib/query-keys";
 
 export const Route = createFileRoute("/financeiro/")({
-  beforeLoad: async () => {
-    const { user } = await getCurrentUserServerFn();
-    if (!user) throw redirect({ to: "/login" });
-  },
+  beforeLoad: ({ location }) =>
+    requireUserOrRedirect("/login", location.pathname),
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData({
       queryKey: parcelaKeys.list(),

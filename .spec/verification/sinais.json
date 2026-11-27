@@ -1,0 +1,1112 @@
+{
+  "schema": 1,
+  "sinais": {
+    "ARQUIVO_ORFAO::—::src/api/auth.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/auth.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.162Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/config.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/config.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/financeiro.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/financeiro.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/funil.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/funil.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/integracao.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/integracao.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/interacoes.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/interacoes.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/operador.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/operador.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/projetos.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/projetos.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/questionarios.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/questionarios.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/api/storage.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/api/storage.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/composicao/etapa-funil-pill-track/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/composicao/etapa-funil-pill-track/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/composicao/etapa-funil-pill-track/utils.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/composicao/etapa-funil-pill-track/utils.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/composicao/input_money/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/composicao/input_money/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/composicao/perdido-confirm-modal/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/composicao/perdido-confirm-modal/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/composicao/status_badge/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/composicao/status_badge/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/layout/app_shell/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/layout/app_shell/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/layout/sidebar/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/layout/sidebar/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/layout/topbar/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/layout/topbar/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/enviar-mensagem-section/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/enviar-mensagem-section/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/funil-vendas-section/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/funil-vendas-section/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/integracoes-config-panel/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/integracoes-config-panel/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/levantamento-section/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/levantamento-section/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/storage-config-panel/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/storage-config-panel/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/orquestracao/superficie-avancada-section/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/orquestracao/superficie-avancada-section/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/badge/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/badge/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/button/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/button/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/card/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/card/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/input_txt/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/input_txt/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/input_txt/utils.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/input_txt/utils.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/componentes/ux/pdf-viewer/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/componentes/ux/pdf-viewer/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/db.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/db.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/env.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/env.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/browser.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/browser.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/client.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/client.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/commonInputTypes.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/commonInputTypes.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/enums.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/enums.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/internal/class.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/internal/class.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/internal/prismaNamespace.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/internal/prismaNamespace.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/internal/prismaNamespaceBrowser.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/internal/prismaNamespaceBrowser.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Arquivo.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Arquivo.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/AuditLog.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/AuditLog.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/CnpjConsulta.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/CnpjConsulta.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/ConfiguracaoEmpresa.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/ConfiguracaoEmpresa.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/ConfiguracaoIntegracao.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/ConfiguracaoIntegracao.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Contrato.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Contrato.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/InteracaoLead.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/InteracaoLead.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Lead.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Lead.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Orcamento.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Orcamento.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Pagamento.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Pagamento.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Parcela.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Parcela.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/PesquisaLead.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/PesquisaLead.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/PriceConfig.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/PriceConfig.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Projeto.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Projeto.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Proposta.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Proposta.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Questionario.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Questionario.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Sessao.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Sessao.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Socio.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Socio.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Sprint.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Sprint.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/StorageConfig.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/StorageConfig.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Subtask.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Subtask.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Task.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Task.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Todo.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Todo.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/TokenResetSenha.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/TokenResetSenha.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/generated/prisma/models/Usuario.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/generated/prisma/models/Usuario.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/integrations/tanstack-query/devtools.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/integrations/tanstack-query/devtools.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/integrations/tanstack-query/root-provider.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/integrations/tanstack-query/root-provider.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/ai-message.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/ai-message.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/ai-message.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/ai-message.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/aisa.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/aisa.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/aisa.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/aisa.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/auth-helper.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/auth-helper.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/brasilapi.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/brasilapi.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/csv-import.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/csv-import.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/csv-import.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/csv-import.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/csv.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/csv.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/email-template.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/email-template.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/empresa-porte.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/empresa-porte.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/format.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/format.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/google-maps.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/google-maps.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/google-maps.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/google-maps.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/integracao.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/integracao.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/kanban-funil.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/kanban-funil.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/kanban-prompt.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/kanban-prompt.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/landing-portfolio.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/landing-portfolio.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/leads.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/leads.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/leads.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/leads.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/localidades.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/localidades.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/masks.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/masks.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/orcamento-calc.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/orcamento-calc.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/paginacao.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/paginacao.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/places.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/places.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/prompts/cold-outreach.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/prompts/cold-outreach.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/query-keys.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/query-keys.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/questionario-template.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/questionario-template.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/research-browser.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/research-browser.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/research-contacts.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/research-contacts.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/research.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/research.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/research.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/research.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/socio.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/socio.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/lib/storage.server.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/lib/storage.server.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routeTree.gen.ts": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routeTree.gen.ts",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/router.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/router.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/__root.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/__root.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/configuracoes.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/configuracoes.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/esqueci-senha.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/esqueci-senha.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/financeiro.index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/financeiro.index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/financeiro.precos.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/financeiro.precos.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/leads.$id.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/leads.$id.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/leads.funil.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/leads.funil.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/leads.garimpo.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/leads.garimpo.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/leads.index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/leads.index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/login.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/login.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/p.contrato.$token.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/p.contrato.$token.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/p.proposta.$token.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/p.proposta.$token.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/p.relatorio.$token.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/p.relatorio.$token.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/perfil.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/perfil.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/projetos.$id.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/projetos.$id.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/projetos.index.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/projetos.index.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/routes/q.$token.tsx": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/routes/q.$token.tsx",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "ARQUIVO_ORFAO::—::src/styles.css": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "src/styles.css",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    },
+    "GLOB_SEM_ARQUIVOS::—::P-002": {
+      "codigo": "GLOB_SEM_ARQUIVOS",
+      "feature": "—",
+      "ref": "P-002",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-10-30T22:07:21.163Z",
+      "ultimaVez": "2026-10-30T22:07:21.163Z",
+      "gitRev": "4587772"
+    }
+  }
+}

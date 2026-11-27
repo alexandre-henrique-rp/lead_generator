@@ -10,6 +10,17 @@ import {
 } from "#/api/funil";
 
 export const Route = createFileRoute("/p/contrato/$token")({
+	head: () => ({
+		meta: [
+			{ title: "Contrato de Prestação de Serviços · King Dev Tec" },
+			{
+				name: "description",
+				content:
+					"Contrato de Prestação de Serviços e Assinatura Digital King Dev Tec",
+			},
+			{ name: "robots", content: "noindex, nofollow" },
+		],
+	}),
 	component: PublicContratoPage,
 });
 

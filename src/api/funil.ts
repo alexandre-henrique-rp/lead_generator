@@ -349,6 +349,26 @@ export const regenerarLinkPropostaServerFn = createServerFn({ method: "POST" })
 		return { proposta: propostaToDTO(atualizada) };
 	});
 
+export interface SocioPublicoDTO {
+	uuid: string;
+	nomeSocio: string;
+	cnpjCpfDoSocio: string | null;
+	qualificacaoSocio: string | null;
+	faixaEtaria: string | null;
+	percentualCapital: number | null;
+}
+
+export interface EmpresaPropostaDTO {
+	nome: string;
+	razaoSocial: string | null;
+	cnpj: string | null;
+	cidade: string | null;
+	uf: string | null;
+	endereco: string | null;
+	capitalSocialCentavos: number | null;
+	socios: SocioPublicoDTO[];
+}
+
 // Pública — buscar proposta por token (sem auth)
 export const getPropostaPublicaServerFn = createServerFn({ method: "GET" })
 	.validator(tokenSchema)
@@ -358,24 +378,59 @@ export const getPropostaPublicaServerFn = createServerFn({ method: "GET" })
 		}): Promise<{
 			proposta: PropostaDTO | null;
 			projetoNome: string | null;
+			empresa: EmpresaPropostaDTO | null;
 			motivo: "OK" | "NAO_ENCONTRADA" | "RASCUNHO" | "REVOGADA";
 		}> => {
 			const { prisma } = await import("#/db");
 			const p = await prisma.proposta.findUnique({
 				where: { token },
 				include: {
-					projeto: { select: { nome: true } },
+					projeto: {
+						select: {
+							nome: true,
+							lead: {
+								include: {
+									socios: {
+										orderBy: { ordem: "asc" },
+									},
+								},
+							},
+						},
+					},
 					arquivos: true,
 				},
 			});
-			if (!p) return { proposta: null, projetoNome: null, motivo: "NAO_ENCONTRADA" };
+			if (!p) return { proposta: null, projetoNome: null, empresa: null, motivo: "NAO_ENCONTRADA" };
 			// RASCUNHO ainda não foi publicada → link não vale.
 			if (p.status === "RASCUNHO") {
-				return { proposta: null, projetoNome: null, motivo: "RASCUNHO" };
+				return { proposta: null, projetoNome: null, empresa: null, motivo: "RASCUNHO" };
 			}
+
+			const lead = p.projeto?.lead;
+			const empresa: EmpresaPropostaDTO | null = lead
+				? {
+						nome: lead.nome,
+						razaoSocial: lead.razaoSocial,
+						cnpj: lead.cnpj,
+						cidade: lead.cidade,
+						uf: lead.uf,
+						endereco: lead.endereco,
+						capitalSocialCentavos: lead.capitalSocialCentavos,
+						socios: (lead.socios ?? []).map((s) => ({
+							uuid: s.uuid,
+							nomeSocio: s.nomeSocio,
+							cnpjCpfDoSocio: s.cnpjCpfDoSocio,
+							qualificacaoSocio: s.qualificacaoSocio,
+							faixaEtaria: s.faixaEtaria,
+							percentualCapital: s.percentualCapital,
+						})),
+					}
+				: null;
+
 			return {
 				proposta: propostaToDTO(p),
 				projetoNome: p.projeto.nome,
+				empresa,
 				motivo: "OK",
 			};
 		},

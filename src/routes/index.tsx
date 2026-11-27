@@ -1,879 +1,1767 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	ArrowRight,
+	ArrowUp,
+	ArrowUpRight,
+	Bot,
+	Briefcase,
+	CalendarCheck,
+	CheckCircle2,
+	Clock,
+	Code2,
+	Cpu,
+	Database,
+	ExternalLink,
+	FileCode2,
+	FolderGit2,
+	Globe,
+	Layers,
+	LayoutGrid,
+	Mail,
+	MapPin,
+	Menu,
+	MessageSquare,
+	PenTool,
+	Quote,
+	Rocket,
+	Search,
+	Send,
+	ShieldCheck,
+	ShoppingBag,
+	Sparkles,
+	Star,
+	Terminal,
+	User,
+	UtensilsCrossed,
+	X,
+	Zap,
+} from "lucide-react";
+import { type FormEvent, useState } from "react";
+import {
+	buildProjectWhatsappUrl,
+	EXPERTISE_ITEMS,
+	filterPortfolioCases,
+	PORTFOLIO_CASES,
+	type ProjectCategory,
+	SMALL_PROJECT_OFFERS,
+} from "#/lib/landing-portfolio";
 
-export const Route = createFileRoute('/')({ component: LandingPage })
+const structuredDataJsonLd = JSON.stringify({
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Person",
+			name: "Alexandre Henrique",
+			jobTitle:
+				"Engenheiro de Software Full-Stack & AI Engineer (Node.js, React, Golang, DevOps, Linux)",
+			url: "https://kingdevtec.com",
+			knowsAbout: [
+				"Node.js",
+				"React",
+				"Golang",
+				"DevOps",
+				"Linux",
+				"AI Engineering",
+				"TypeScript",
+				"PostgreSQL",
+			],
+			sameAs: [
+				"https://github.com/alexandre-henrique-rp",
+				"https://www.linkedin.com/in/dev-alexandre-henrique",
+			],
+			worksFor: {
+				"@type": "Organization",
+				name: "King Dev Tec",
+			},
+		},
+		{
+			"@type": "ProfessionalService",
+			name: "King Dev Tec — Alexandre Henrique",
+			description:
+				"Portfólio de engenharia de software, venda de pequenos projetos de entrega rápida (cardápio digital, agendamento online, landing pages, bots WhatsApp) e desenvolvimento de sistemas sob medida e MVPs.",
+			areaServed: "BR",
+			url: "https://kingdevtec.com",
+			email: "contato@kingdevtec.com",
+			telephone: "+55-16-99602-9107",
+		},
+	],
+});
+
+export const Route = createFileRoute("/")({
+	head: () => ({
+		meta: [
+			{
+				title:
+					"Alexandre Henrique · King Dev Tec | Desenvolvedor Independente, Pequenos Projetos & Sistemas Sob Medida",
+			},
+			{
+				name: "description",
+				content:
+					"Portfólio oficial de Alexandre Henrique (King Dev Tec). Venda de pequenos projetos de entrega rápida (Cardápio Digital, Agendamento, Sites, Bots WhatsApp) e engenharia de sistemas sob medida, SaaS e MVPs.",
+			},
+			{
+				name: "keywords",
+				content:
+					"desenvolvedor full stack, nodejs, react, golang, devops, linux, ai engineer, engenharia de ia, portfólio desenvolvedor independente, pequenos projetos web, sistemas sob medida, King Dev Tec, Alexandre Henrique",
+			},
+			{
+				property: "og:title",
+				content:
+					"Alexandre Henrique · King Dev Tec — Portfólio, Pequenos Projetos & Engenharia de Software",
+			},
+			{
+				property: "og:description",
+				content:
+					"Soluções digitais sob medida: de projetos rápidos para comércios e clínicas a ERPs, fintechs e MVPs escaláveis direto com o desenvolvedor.",
+			},
+			{
+				property: "og:image",
+				content: "/alexandre-hero.webp",
+			},
+		],
+	}),
+	component: LandingPage,
+});
+
+const PROCESS_STEPS = [
+	{
+		step: "01",
+		title: "Diagnóstico",
+		description:
+			"Entendimento rápido do seu negócio no WhatsApp para definir se a melhor rota é um projeto enxuto ou sistema sob medida.",
+		icon: Search,
+	},
+	{
+		step: "02",
+		title: "Escopo & Proposta",
+		description:
+			"Definição clara das entregas, cronograma e proposta comercial transparente — sem letras miúdas ou taxas surpresa.",
+		icon: FileCode2,
+	},
+	{
+		step: "03",
+		title: "UI & Arquitetura",
+		description:
+			"Desenho da experiência de uso no celular e no computador junto com a modelagem técnica do banco de dados.",
+		icon: PenTool,
+	},
+	{
+		step: "04",
+		title: "Desenvolvimento",
+		description:
+			"Construção direta por mim em ciclos ágeis, com links de prévia para você acompanhar a evolução real.",
+		icon: Code2,
+	},
+	{
+		step: "05",
+		title: "Testes & Qualidade",
+		description:
+			"Bateria de testes automatizados e validação em múltiplos dispositivos garantindo segurança e velocidade.",
+		icon: ShieldCheck,
+	},
+	{
+		step: "06",
+		title: "Deploy & Entrega",
+		description:
+			"Sistema publicado no ar com domínio configurado, código 100% seu e suporte pós-entrega garantido.",
+		icon: Rocket,
+	},
+];
+
+const TESTIMONIALS = [
+	{
+		quote:
+			"O Alexandre liderou toda a arquitetura do nosso ERP do zero. Hoje conectamos construtoras, correspondentes Caixa e certificadoras no Brasil inteiro com assinatura ICP-Brasil sem falhas de performance.",
+		author: "Diretoria de Tecnologia",
+		role: "SisNato Digital · ERP & Certificação",
+		badge: "ERP em Produção",
+	},
+	{
+		quote:
+			"Colocamos a plataforma de telemedicina no ar com muita agilidade. O desenvolvimento do MVP com chamadas de vídeo funcionais foi o que nos permitiu validar a operação rapidamente com os médicos.",
+		author: "Coordenação de Produto",
+		role: "Oi Doutor Saúde Digital · HealthTech",
+		badge: "MVP Validado",
+	},
+	{
+		quote:
+			"A senioridade em Web3 e arquitetura de transações on-chain foi um divisor de águas. Sem reuniões desnecessárias, direto ao ponto no código e nas entregas da nossa fintech.",
+		author: "Operações & Estruturação",
+		role: "GreenInvest Fintech · EcoCharge",
+		badge: "Blockchain & Web3",
+	},
+];
+
+const FAQ_ITEMS = [
+	{
+		q: "Você atende tanto pequenos projetos rápidos quanto sistemas grandes?",
+		a: "Sim! Tenho uma linha dedicada a pequenos projetos de entrega rápida (como cardápios digitais, sistemas de agendamento, catálogos, landing pages e bots de WhatsApp) pensada para comércios, clínicas e profissionais liberais, além da engenharia completa de sistemas sob medida, ERPs e MVPs para startups.",
+	},
+	{
+		q: "Como funciona o orçamento de um projeto?",
+		a: "O orçamento é feito sob medida para a sua necessidade real, sem custos inflados de agência. Você me chama no WhatsApp ou preenche o formulário no fim da página, conversamos rapidamente sobre o que você precisa e envio uma proposta clara com escopo e prazo definidos.",
+	},
+	{
+		q: "Quem fica como dono do código-fonte e do sistema?",
+		a: "Você. Ao contrário de plataformas alugadas onde você perde tudo se parar de pagar, 100% do código-fonte, banco de dados e domínio ficam no seu nome, sem amarras.",
+	},
+	{
+		q: "Qual a vantagem de contratar um desenvolvedor independente em vez de uma agência?",
+		a: "Em agências tradicionais seu investimento custeia vendedores, gerentes intermediários e estrutura física, enquanto o código muitas vezes é repassado para estagiários. Comigo você fala direto com o engenheiro sênior que projeta e programa cada linha do seu sistema.",
+	},
+	{
+		q: "Existe garantia e suporte após a entrega?",
+		a: "Com certeza. Todo projeto entregue conta com período de garantia técnica para ajustes e suporte próximo, além da possibilidade de evolução contínua sob demanda conforme seu negócio cresce.",
+	},
+];
+
+function getOfferIcon(id: string) {
+	switch (id) {
+		case "cardapio-digital":
+			return UtensilsCrossed;
+		case "agendamento-online":
+			return CalendarCheck;
+		case "landing-page":
+			return Globe;
+		case "catalogo-vitrine":
+			return ShoppingBag;
+		case "bot-whatsapp":
+			return Bot;
+		default:
+			return Sparkles;
+	}
+}
 
 function LandingPage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
+	const [openFaq, setOpenFaq] = useState<number | null>(0);
+	const [activeCategory, setActiveCategory] =
+		useState<ProjectCategory>("todos");
+	const [activeTestimonial, setActiveTestimonial] = useState<number>(0);
+	const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
-  const toggleFaq = (index: number) => {
-    setOpenFaq(openFaq === index ? null : index)
-  }
+	// Estado do formulário interativo de contato/orçamento
+	const [nome, setNome] = useState("");
+	const [contato, setContato] = useState("");
+	const [tipoProjeto, setTipoProjeto] = useState(
+		"Pequeno Projeto: Cardápio / Agendamento / Site / Catálogo",
+	);
+	const [mensagem, setMensagem] = useState("");
 
-  const whatsappUrl = "https://wa.me/5516996029107?text=Ol%C3%A1%20Alexandre!%20Gostaria%20de%20conversar%20sobre%20um%20projeto%20com%20a%20King%20Dev%20Tec."
+	const toggleFaq = (index: number) => {
+		setOpenFaq(openFaq === index ? null : index);
+	};
 
-  return (
-    <div className="min-h-screen bg-black text-slate-200 font-sans selection:bg-indigo-500/30 relative overflow-x-hidden">
-      {/* Tech Grid Background */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#4f46e50d_1px,transparent_1px),linear-gradient(to_bottom,#4f46e50d_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] fixed pointer-events-none"></div>
-      
-      {/* Ambient Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/15 blur-[140px] rounded-full pointer-events-none z-0"></div>
-      <div className="absolute top-1/4 right-0 w-[450px] h-[450px] bg-pink-600/10 blur-[130px] rounded-full pointer-events-none z-0"></div>
-      <div className="absolute top-2/3 left-0 w-[500px] h-[500px] bg-indigo-900/15 blur-[160px] rounded-full pointer-events-none z-0"></div>
+	const whatsappUrl = buildProjectWhatsappUrl();
+	const filteredCases = filterPortfolioCases(PORTFOLIO_CASES, activeCategory);
 
-      {/* Floating WhatsApp Button */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center group">
-        <a 
-          href={whatsappUrl} 
-          target="_blank" 
-          rel="noreferrer"
-          aria-label="Falar com Alexandre no WhatsApp"
-          className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full shadow-[0_0_25px_rgba(16,185,129,0.7)] transition-transform hover:scale-110 active:scale-95"
-        >
-          <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400"></span>
-          </span>
-          <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-          </svg>
-        </a>
-        <div className="hidden group-hover:block absolute right-16 bg-slate-900 border border-emerald-500/30 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-          Falar com Alexandre no WhatsApp (Online)
-        </div>
-      </div>
+	const handleSelectProjectForQuote = (subject: string) => {
+		setTipoProjeto(subject);
+		const contactSection = document.getElementById("contato");
+		if (contactSection) {
+			contactSection.scrollIntoView({ behavior: "smooth" });
+		}
+	};
 
-      {/* Navigation */}
-      <nav className="relative z-20 flex items-center justify-between px-6 md:px-8 py-5 max-w-7xl mx-auto border-b border-white/5 backdrop-blur-md sticky top-0 bg-black/60">
-        <Link to="/" className="flex items-center gap-3">
-          <img src="/Logo_KingDevTec_04.png" alt="King Dev Tec" className="h-7 md:h-9 object-contain" />
-        </Link>
-        <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-400">
-          <a href="#diferenciais" className="hover:text-white transition-colors">Diferenciais</a>
-          <a href="#solucoes" className="hover:text-white transition-colors">Soluções</a>
-          <a href="#portfolio" className="hover:text-white transition-colors">Portfólio</a>
-          <a href="#processo" className="hover:text-white transition-colors">Como Funciona</a>
-          <a href="#depoimentos" className="hover:text-white transition-colors">Depoimentos</a>
-          <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-        </div>
-        <div className="flex items-center gap-4">
-          <a 
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs md:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-4 md:px-5 py-2.5 rounded-lg shadow-[0_0_20px_-3px_rgba(79,70,229,0.7)] transition-all hover:scale-105 active:scale-95"
-          >
-            Solicitar Orçamento →
-          </a>
-          <Link 
-            to="/login" 
-            className="hidden sm:inline-block text-xs font-mono text-slate-400 hover:text-white transition-colors"
-          >
-            Central Administrativa
-          </Link>
-        </div>
-      </nav>
+	const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		const targetUrl = buildProjectWhatsappUrl({
+			nome,
+			contato,
+			tipoProjeto,
+			mensagem,
+		});
+		window.open(targetUrl, "_blank", "noopener,noreferrer");
+	};
 
-      {/* Hero Section */}
-      <section className="relative z-10 flex flex-col items-center justify-center pt-16 pb-24 px-6 text-center max-w-6xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 mb-8 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-xs font-mono text-indigo-300 backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Engenharia de software solo · Comunicação direta · Orçamento sem compromisso
-        </div>
-        
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.1] mb-8">
-          Vá da ideia ao software rodando em produção <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-pink-400 to-pink-500">sem intermediários</span> — direto com quem constrói.
-        </h1>
-        
-        <p className="text-lg md:text-xl text-slate-300 max-w-3xl mb-10 font-light leading-relaxed">
-          Sem agências burocráticas ou camadas de gerência. Você fala direto com quem escreve cada linha. Entregas contínuas em sprints ágeis, com código aberto pra você desde o início.
-        </p>
+	const currentTestimonial = TESTIMONIALS[activeTestimonial] ?? TESTIMONIALS[0];
 
-        <div className="flex flex-col sm:flex-row items-center gap-5 mb-4">
-          <a 
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-[0_0_30px_-5px_rgba(16,185,129,0.7)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 text-base"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-            Solicitar Orçamento Grátis →
-          </a>
-          
-          <a 
-            href="#solucoes" 
-            className="w-full sm:w-auto px-6 py-4 text-slate-400 hover:text-white font-medium transition-colors flex items-center justify-center gap-2 group"
-          >
-            Ou veja o que eu construo <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
-          </a>
-        </div>
+	return (
+		<div
+			id="topo"
+			className="min-h-screen bg-black text-slate-200 font-sans selection:bg-indigo-500/30 relative overflow-x-hidden"
+		>
+			{/* Dados estruturados SEO JSON-LD */}
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD estático de SEO
+				dangerouslySetInnerHTML={{ __html: structuredDataJsonLd }}
+			/>
 
-        <div className="text-xs text-slate-400 font-mono mb-16">
-          Atendimento ágil direto no WhatsApp em horário comercial · Sem compromisso
-        </div>
+			{/* Tech Grid Background */}
+			<div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#4f46e50f_1px,transparent_1px),linear-gradient(to_bottom,#4f46e50f_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_75%_55%_at_50%_0%,#000_70%,transparent_100%)] fixed pointer-events-none" />
 
-        {/* Terminal/Code snippet */}
-        <div className="w-full max-w-3xl border border-white/10 rounded-2xl bg-[#090D16]/90 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col mb-16">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-              <span className="ml-2 text-xs font-mono text-slate-500">king-engine ~ sprint-01.ts</span>
-            </div>
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              production-ready
-            </span>
-          </div>
-          <div className="p-6 text-left font-mono text-xs sm:text-sm text-slate-300 overflow-x-auto leading-relaxed">
-            <div className="text-slate-500 mb-2">// Entrega Real da Sprint 1 — Código Aberto no Seu Git</div>
-            <div className="flex"><span className="text-pink-400 mr-2">const</span> <span className="text-blue-300">mvp</span> <span className="text-white mx-2">=</span> <span className="text-indigo-300">await</span> <span className="text-green-300">KingDev.build</span>&#40;&#123;</div>
-            <div className="ml-4">arquitetura: <span className="text-orange-300">'Clean Architecture + Serverless'</span>,</div>
-            <div className="ml-4">database: <span className="text-orange-300">'PostgreSQL + Prisma / Drizzle'</span>,</div>
-            <div className="ml-4">frontend: <span className="text-orange-300">'TanStack Start + React + Tailwind v4'</span>,</div>
-            <div className="ml-4">integracoes: [<span className="text-orange-300">'WhatsApp Business API'</span>, <span className="text-orange-300">'OpenAI'</span>, <span className="text-orange-300">'Gateway de Pagamento'</span>],</div>
-            <div className="ml-4">garantiaPosEntrega: <span className="text-emerald-400">true</span></div>
-            <div>&#125;&#41;;</div>
-            <div className="text-emerald-400 mt-3 font-semibold">✓ Infraestrutura provisionada na sua conta de nuvem</div>
-            <div className="text-emerald-400 font-semibold">✓ Repositório entregue com permissão total</div>
-          </div>
-        </div>
+			{/* Ambient Lighting */}
+			<div className="absolute top-0 left-1/4 w-[680px] h-[420px] bg-indigo-600/15 blur-[150px] rounded-full pointer-events-none z-0" />
+			<div className="absolute top-28 right-1/4 w-[520px] h-[520px] bg-pink-600/10 blur-[150px] rounded-full pointer-events-none z-0" />
+			<div className="absolute top-2/3 left-0 w-[500px] h-[500px] bg-indigo-900/15 blur-[160px] rounded-full pointer-events-none z-0" />
 
-        {/* Metrics Grid */}
-        <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl border border-white/5 bg-white/[0.01]">
-          <div className="p-4 text-center">
-            <div className="text-3xl md:text-4xl font-extrabold text-white mb-1 tracking-tight">8+</div>
-            <div className="text-xs font-mono text-slate-400">MVPs e Sistemas no Ar</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-3xl md:text-4xl font-extrabold text-indigo-400 mb-1 tracking-tight">100%</div>
-            <div className="text-xs font-mono text-slate-400">Código Proprietário</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-3xl md:text-4xl font-extrabold text-pink-400 mb-1 tracking-tight">Sprints</div>
-            <div className="text-xs font-mono text-slate-400">Ciclos Ágeis de Entrega</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-3xl md:text-4xl font-extrabold text-emerald-400 mb-1 tracking-tight">Zero</div>
-            <div className="text-xs font-mono text-slate-400">Burocracia de Agência</div>
-          </div>
-        </div>
-      </section>
+			{/* Floating WhatsApp Button */}
+			<div className="fixed bottom-6 right-6 z-50 flex items-center group">
+				<a
+					href={whatsappUrl}
+					target="_blank"
+					rel="noreferrer"
+					aria-label="Falar com Alexandre no WhatsApp"
+					className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full shadow-[0_10px_25px_rgba(16,185,129,0.5)] transition-transform hover:scale-105 active:scale-95"
+				>
+					<span className="absolute -top-1 -right-1 flex h-4 w-4">
+						<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+						<span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400" />
+					</span>
+					<MessageSquare className="w-6 h-6 fill-current" />
+				</a>
+				<div className="hidden group-hover:block absolute right-16 bg-slate-900 border border-emerald-500/30 text-slate-200 text-xs font-medium px-3.5 py-2 rounded-lg whitespace-nowrap shadow-xl">
+					Falar com Alexandre no WhatsApp (Online)
+				</div>
+			</div>
 
-      {/* Diferenciais Section */}
-      <section id="diferenciais" className="relative z-10 py-24 px-6 border-t border-white/5 bg-black/40">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16">
-            <div className="text-indigo-400 font-mono text-xs uppercase tracking-widest mb-3">O Modelo Anti-Agência</div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">3 motivos para contratar um dev sênior solo em vez de uma agência</h2>
-            <p className="text-slate-400 text-lg max-w-2xl leading-relaxed">
-              Em agências, o seu orçamento paga o café do gerente de projetos, a sala de reuniões e o comercial. Aqui, cada investimento vira código direto no seu produto.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Zero Burocracia</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Comunicação direta com o desenvolvedor. Sem ticket, sem espera de dias úteis para mudar a cor de um botão. Decisões técnicas e de produto alinhadas com rapidez.
-              </p>
-            </div>
-            
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Código que não vira refazer</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Seu produto nasce com arquitetura limpa, segurança tratada desde o primeiro commit e testes automatizados. Não é código de demonstração descartável: é código que aguenta produção e escala com segurança.
-              </p>
-            </div>
-            
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08-.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Precificação Transparente</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Orçamento transparente alinhado ao escopo real. O que combinamos na proposta técnica é o que você paga. Sem taxas ocultas, sem adicionais arbitrários na entrega.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+			{/* Navigation */}
+			<header className="sticky top-0 z-30 border-b border-slate-800/80 bg-black/85 backdrop-blur-xl">
+				<nav
+					aria-label="Navegação principal"
+					className="flex items-center justify-between px-6 md:px-8 h-20 max-w-7xl mx-auto gap-4"
+				>
+					<Link
+						to="/"
+						className="flex items-center shrink-0 transition-opacity hover:opacity-90"
+					>
+						<img
+							src="/Logo_KingDevTec_04.png"
+							alt="King Dev Tec"
+							width={150}
+							height={38}
+							className="h-8 md:h-9 w-auto object-contain"
+						/>
+					</Link>
 
-      {/* Soluções (Comercial / Vendas) */}
-      <section id="solucoes" className="relative z-10 py-24 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16 text-center">
-            <div className="text-pink-400 font-mono text-xs uppercase tracking-widest mb-3">Capacidade Técnica de Ponta a Ponta</div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">4 entregas que tiram empresas do papel</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Desenvolvimento, automação, sites e consultoria — sob medida para a sua necessidade.
-            </p>
-          </div>
+					{/* Links centralizados com indicador luminoso igual à referência */}
+					<div className="hidden lg:flex items-center gap-1 rounded-full border border-slate-800/90 bg-slate-950/90 px-3 py-1.5 shadow-lg">
+						{[
+							{ href: "#topo", label: "Início", active: true },
+							{ href: "#sobre", label: "Sobre & Stack", active: false },
+							{
+								href: "#pequenos-projetos",
+								label: "Pequenos Projetos",
+								active: false,
+							},
+							{ href: "#portfolio", label: "Portfólio", active: false },
+							{ href: "#solucoes", label: "Sistemas & MVPs", active: false },
+							{ href: "#processo", label: "Processo", active: false },
+							{ href: "#contato", label: "Contato", active: false },
+						].map((link) => (
+							<a
+								key={link.href}
+								href={link.href}
+								className={`relative px-3.5 py-1.5 text-xs xl:text-sm font-medium rounded-full transition-colors ${
+									link.active
+										? "text-white bg-indigo-600/20 border border-indigo-500/40 shadow-[0_0_15px_rgba(79,70,229,0.25)]"
+										: "text-slate-400 hover:text-slate-100 hover:bg-slate-900/80"
+								}`}
+							>
+								{link.label}
+							</a>
+						))}
+					</div>
 
-          <div className="flex flex-col gap-8">
-            {/* Sistema Web / Startups */}
-            <div className="flex flex-col md:flex-row items-center border border-white/10 bg-white/[0.01] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-colors">
-              <div className="w-full md:w-1/2 p-8 md:p-12">
-                <div className="text-indigo-400 font-mono text-sm mb-3">{"< MVP & Sistemas SaaS />"}</div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Sistemas de Gestão & SaaS Personalizado</h3>
-                <p className="text-slate-400 mb-6 text-sm md:text-base leading-relaxed">
-                  Cansado de pagar assinaturas caras em múltiplos sistemas genéricos que não se comunicam? Eu construo a plataforma centralizada do seu negócio — painel administrativo, portal do cliente, integrações e o core do seu produto SaaS.
-                </p>
-                <ul className="space-y-2.5 mb-8 text-sm">
-                  <li className="flex items-center text-slate-300"><span className="text-indigo-400 mr-2 font-bold">✓</span> Dashboards administrativos (Admin Panels de alta performance)</li>
-                  <li className="flex items-center text-slate-300"><span className="text-indigo-400 mr-2 font-bold">✓</span> Portais do Cliente & Área de Membros</li>
-                  <li className="flex items-center text-slate-300"><span className="text-indigo-400 mr-2 font-bold">✓</span> Stack moderna (TanStack, React, Node.js, Postgres)</li>
-                </ul>
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-medium text-sm group"
-                >
-                  Quero desenvolver um sistema sob medida <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </a>
-              </div>
-              <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#050505] flex justify-center border-l border-white/5 min-h-[280px] items-center">
-                 <div className="w-full max-w-sm rounded-xl border border-white/10 bg-white/[0.02] p-5 shadow-2xl">
-                    <div className="w-full h-3 bg-white/10 rounded mb-4"></div>
-                    <div className="flex gap-4">
-                      <div className="w-1/3 h-20 bg-indigo-500/20 border border-indigo-500/30 rounded-lg"></div>
-                      <div className="w-2/3 h-20 bg-white/5 rounded-lg"></div>
-                    </div>
-                    <div className="w-full h-8 bg-white/5 rounded-lg mt-4 flex items-center px-3">
-                      <div className="w-16 h-2 bg-indigo-400/40 rounded"></div>
-                    </div>
-                 </div>
-              </div>
-            </div>
+					{/* Ações à Direita + Botão Mobile */}
+					<div className="flex items-center gap-2.5 shrink-0">
+						<a
+							href="#contato"
+							className="text-xs md:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 rounded-xl shadow-[0_0_20px_-4px_rgba(79,70,229,0.65)] transition-all flex items-center gap-2"
+						>
+							<Sparkles className="w-4 h-4 text-indigo-200" />
+							<span>Solicitar Orçamento</span>
+						</a>
+						<Link
+							to="/login"
+							aria-label="Central Administrativa"
+							className="hidden sm:inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-slate-200 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 hover:border-indigo-500/40 transition-colors"
+						>
+							<Terminal className="w-3.5 h-3.5 text-indigo-400" />
+							<span>Admin</span>
+						</Link>
+						<button
+							type="button"
+							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+							aria-label={
+								mobileMenuOpen
+									? "Fechar menu de navegação"
+									: "Abrir menu de navegação"
+							}
+							aria-expanded={mobileMenuOpen}
+							className="lg:hidden w-10 h-10 rounded-xl border border-slate-800 bg-slate-900/80 text-slate-200 hover:border-indigo-500/40 flex items-center justify-center transition-colors cursor-pointer"
+						>
+							{mobileMenuOpen ? (
+								<X className="w-5 h-5" />
+							) : (
+								<Menu className="w-5 h-5" />
+							)}
+						</button>
+					</div>
+				</nav>
 
-            {/* Bots e Automação */}
-            <div className="flex flex-col md:flex-row-reverse items-center border border-white/10 bg-white/[0.01] rounded-2xl overflow-hidden hover:border-pink-500/50 transition-colors">
-              <div className="w-full md:w-1/2 p-8 md:p-12">
-                <div className="text-pink-400 font-mono text-sm mb-3">{"[ Bots & IA Generativa ]"}</div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Bots Inteligentes para WhatsApp & Automações</h3>
-                <p className="text-slate-400 mb-6 text-sm md:text-base leading-relaxed">
-                  Atendimento ágil no WhatsApp, sem responder a mesma pergunta repetitiva o dia todo. O bot lê seu banco de dados, envia informações, qualifica leads e agenda reuniões no seu calendário — tudo de forma fluida.
-                </p>
-                <ul className="space-y-2.5 mb-8 text-sm">
-                  <li className="flex items-center text-slate-300"><span className="text-pink-400 mr-2 font-bold">✓</span> Atendimento oficial via WhatsApp Cloud API</li>
-                  <li className="flex items-center text-slate-300"><span className="text-pink-400 mr-2 font-bold">✓</span> Integração com IA (OpenAI / Claude) treinada no seu negócio</li>
-                  <li className="flex items-center text-slate-300"><span className="text-pink-400 mr-2 font-bold">✓</span> Automação de agendamentos e funil comercial</li>
-                </ul>
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-pink-400 hover:text-pink-300 font-medium text-sm group"
-                >
-                  Quero automatizar meu WhatsApp <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </a>
-              </div>
-              <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#050505] flex justify-center border-r border-white/5 min-h-[280px] items-center">
-                 <div className="w-full max-w-sm flex flex-col gap-3">
-                    <div className="w-4/5 p-3.5 rounded-2xl rounded-tl-sm bg-white/5 self-start text-xs sm:text-sm text-slate-300 border border-white/5">
-                      Olá! Quero automatizar o envio de orçamentos pelo WhatsApp.
-                    </div>
-                    <div className="w-4/5 p-3.5 rounded-2xl rounded-tr-sm bg-indigo-600/25 border border-indigo-500/40 self-end text-xs sm:text-sm text-white">
-                      Perfeito! O bot qualifica o cliente, consulta a tabela no sistema e gera a proposta em PDF na hora.
-                    </div>
-                 </div>
-              </div>
-            </div>
+				{/* Menu Mobile Dropdown */}
+				{mobileMenuOpen && (
+					<div className="lg:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-xl px-6 py-4 space-y-1">
+						{[
+							{ href: "#topo", label: "Início" },
+							{ href: "#sobre", label: "Sobre & Stack" },
+							{ href: "#pequenos-projetos", label: "Pequenos Projetos" },
+							{ href: "#portfolio", label: "Portfólio" },
+							{ href: "#solucoes", label: "Sistemas & MVPs" },
+							{ href: "#processo", label: "Processo" },
+							{ href: "#contato", label: "Contato" },
+						].map((link) => (
+							<a
+								key={link.href}
+								href={link.href}
+								className="block px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors"
+							>
+								{link.label}
+							</a>
+						))}
+						<div className="pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between">
+							<Link
+								to="/login"
+								className="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-slate-200 py-2"
+							>
+								<Terminal className="w-3.5 h-3.5 text-indigo-400" />
+								<span>Acessar Central Administrativa</span>
+							</Link>
+						</div>
+					</div>
+				)}
+			</header>
 
-            {/* Sites */}
-            <div className="flex flex-col md:flex-row items-center border border-white/10 bg-white/[0.01] rounded-2xl overflow-hidden hover:border-emerald-500/50 transition-colors">
-              <div className="w-full md:w-1/2 p-8 md:p-12">
-                <div className="text-emerald-400 font-mono text-sm mb-3">{"< Frontend de Alta Performance />"}</div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Sites e Landing Pages de Alta Conversão</h3>
-                <p className="text-slate-400 mb-6 text-sm md:text-base leading-relaxed">
-                  Landing page que carrega com velocidade extrema no celular e converte visitantes em clientes reais. Sem templates pesados, código limpo e proprietário, seu para sempre.
-                </p>
-                <ul className="space-y-2.5 mb-8 text-sm">
-                  <li className="flex items-center text-slate-300"><span className="text-emerald-400 mr-2 font-bold">✓</span> Páginas para lançamentos e produtos com alta taxa de conversão</li>
-                  <li className="flex items-center text-slate-300"><span className="text-emerald-400 mr-2 font-bold">✓</span> Otimização técnica de SEO e carregamento veloz</li>
-                  <li className="flex items-center text-slate-300"><span className="text-emerald-400 mr-2 font-bold">✓</span> Design responsivo adaptado para qualquer tela</li>
-                </ul>
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm group"
-                >
-                  Quero um site de alta conversão <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </a>
-              </div>
-              <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#050505] flex justify-center border-l border-white/5 min-h-[280px] items-center">
-                 <div className="w-full max-w-sm flex flex-col gap-3">
-                    <div className="w-full h-8 border border-white/10 bg-white/5 rounded-t-lg flex items-center justify-between px-3">
-                      <div className="flex gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
-                      </div>
-                      <div className="w-16 h-2 bg-emerald-400/40 rounded-full font-mono text-[9px] text-emerald-400 flex items-center justify-center">100/100</div>
-                    </div>
-                    <div className="w-full h-36 bg-emerald-500/10 rounded-b-lg border border-emerald-500/20 border-t-0 flex flex-col items-center justify-center gap-2 p-4">
-                       <div className="w-1/2 h-3 bg-white/30 rounded-full"></div>
-                       <div className="w-3/4 h-2 bg-white/10 rounded-full"></div>
-                       <div className="w-28 h-7 bg-emerald-500/40 rounded-md mt-2 flex items-center justify-center text-[10px] text-emerald-200 font-mono">
-                          LCP: 0.8s (Fast)
-                       </div>
-                    </div>
-                 </div>
-              </div>
-            </div>
+			<main className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 space-y-12 pb-24">
+				{/* Hero Section */}
+				<section aria-labelledby="hero-heading" className="pt-10 md:pt-16 pb-6">
+					<div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+						{/* Coluna Esquerda: Posicionamento, CTAs e Redes */}
+						<div className="lg:col-span-6 flex flex-col items-start text-left">
+							<div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 mb-6 rounded-full border border-indigo-500/30 bg-slate-900/90 text-xs font-mono text-slate-300 shadow-sm">
+								<span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+								<span>
+									Desenvolvedor Independente · Pequenos Projetos & Sistemas
+								</span>
+							</div>
 
-            {/* Consultoria */}
-            <div className="flex flex-col md:flex-row-reverse items-center border border-white/10 bg-white/[0.01] rounded-2xl overflow-hidden hover:border-orange-500/50 transition-colors">
-              <div className="w-full md:w-1/2 p-8 md:p-12">
-                <div className="text-orange-400 font-mono text-sm mb-3">{"$ consultoria --tech"}</div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Consultoria e Arquitetura de Software</h3>
-                <p className="text-slate-400 mb-6 text-sm md:text-base leading-relaxed">
-                  Tem um time de desenvolvimento mas precisa de direcionamento sênior? Ajudo sua empresa a desenhar arquiteturas escaláveis, resolver gargalos de lentidão e estabelecer boas práticas de código.
-                </p>
-                <ul className="space-y-2.5 mb-8 text-sm">
-                  <li className="flex items-center text-slate-300"><span className="text-orange-400 mr-2 font-bold">✓</span> Auditoria de arquitetura, banco de dados e APIs</li>
-                  <li className="flex items-center text-slate-300"><span className="text-orange-400 mr-2 font-bold">✓</span> Resolução de gargalos de performance e escalabilidade</li>
-                  <li className="flex items-center text-slate-300"><span className="text-orange-400 mr-2 font-bold">✓</span> Mentoria técnica e plano de ação objetivo</li>
-                </ul>
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-medium text-sm group"
-                >
-                  Agendar consultoria técnica <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </a>
-              </div>
-              <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#050505] flex justify-center border-r border-white/5 min-h-[280px] items-center">
-                 <div className="w-full max-w-sm rounded-xl border border-white/10 bg-black p-5 font-mono text-xs text-slate-400 shadow-2xl flex flex-col gap-2">
-                    <div className="text-orange-400 mb-1 font-semibold"># Auditoria de Performance</div>
-                    <div><span className="text-pink-400">{">"}</span> Consultando índices do Postgres...</div>
-                    <div className="text-emerald-400 font-semibold">[OK] Tempo de query reduzido com precisão</div>
-                    <div><span className="text-pink-400">{">"}</span> Otimizando camadas de cache...</div>
-                    <div className="text-emerald-400 font-semibold">[OK] Carga do servidor otimizada com sucesso</div>
-                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+							<h1
+								id="hero-heading"
+								className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight text-slate-100 leading-[1.08] mb-6"
+							>
+								Eu construo{" "}
+								<span className="block text-indigo-400">soluções digitais</span>{" "}
+								que vendem e escalam.
+							</h1>
 
-      {/* Portfólio Section */}
-      <section id="portfolio" className="relative z-10 py-24 px-6 bg-black/40 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div>
-              <div className="text-indigo-400 font-mono text-xs uppercase tracking-widest mb-3">Cases Reais de Produção</div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">De ideia a produção: cases reais</h2>
-              <p className="text-slate-400 text-lg max-w-xl">
-                Cada um desses começou no planejamento de requisitos. Hoje roda em produção atendendo clientes reais.
-              </p>
-            </div>
-            <a 
-              href="https://github.com/alexandre-henrique-rp" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.06] text-white transition-all text-sm font-medium hover:scale-105"
-            >
-              <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
-              Ver GitHub do Desenvolvedor
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </a>
-          </div>
+							<p className="text-base sm:text-lg text-slate-300 max-w-xl mb-8 leading-relaxed">
+								Sou{" "}
+								<strong className="text-slate-100 font-semibold">
+									Alexandre Henrique
+								</strong>
+								, engenheiro de software full-stack à frente da{" "}
+								<strong className="text-slate-100 font-semibold">
+									King Dev Tec
+								</strong>
+								. Desenvolvo desde pequenos projetos comerciais de entrega
+								rápida até plataformas SaaS, ERPs e MVPs completos — direto com
+								quem escreve o código.
+							</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Project 1 - SisNato */}
-            <a 
-              href="https://sisnato.com.br/" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] hover:border-indigo-500/50 transition-all flex flex-col block"
-            >
-              <div className="h-64 bg-slate-950 relative overflow-hidden border-b border-white/5">
-                <img 
-                  src="/sisnato.png" 
-                  alt="ERP SisNato - Gestão de Certificação e Assinatura Digital" 
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-indigo-600/90 text-white shadow-lg backdrop-blur-md">
-                    ★ Desenvolvedor Chefe
-                  </span>
-                </div>
-              </div>
-              <div className="p-8 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">ERP Imobiliário</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">ICP-Brasil</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Correspondente Caixa (CCA)</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Assinatura Digital</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-bold text-white group-hover:text-indigo-400 transition-colors">
-                      SisNato — ERP Digital
-                    </h3>
-                    <svg className="w-5 h-5 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                  </div>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                    Imobiliárias e corretores fecham contratos com assinatura digital ICP-Brasil válida juridicamente. Contratos imobiliários processados com alta segurança e conformidade total.
-                  </p>
-                  <div className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded border border-emerald-500/20 inline-block">
-                    ✓ Emissão ICP-Brasil integrada à Caixa
-                  </div>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center text-xs text-indigo-400 font-mono">
-                  sisnato.com.br ↗
-                </div>
-              </div>
-            </a>
+							<div className="flex flex-wrap items-center gap-4 mb-8 w-full sm:w-auto">
+								<a
+									href="#pequenos-projetos"
+									className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl shadow-[0_10px_25px_-5px_rgba(16,185,129,0.5)] transition-all flex items-center justify-center gap-2.5 text-sm"
+								>
+									<span>Ver Projetos & Soluções</span>
+									<ArrowRight className="w-4 h-4" />
+								</a>
 
-            {/* Project 2 - Oi Doutor Telemedicina */}
-            <a 
-              href="https://www.oidoutortelemedicina.com.br/" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] hover:border-emerald-500/50 transition-all flex flex-col block"
-            >
-              <div className="h-64 bg-slate-950 relative overflow-hidden border-b border-white/5">
-                <img 
-                  src="/oidoutor.png" 
-                  alt="Oi Doutor Saúde Digital - Plataforma de Telemedicina" 
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-emerald-600/90 text-white shadow-lg backdrop-blur-md">
-                    ★ Desenvolvedor Principal (MVP)
-                  </span>
-                </div>
-              </div>
-              <div className="p-8 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">HealthTech</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Telemedicina</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Vídeo ao Vivo</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">MVP</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      Oi Doutor Telemedicina
-                    </h3>
-                    <svg className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                  </div>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                    Desenvolvimento e arquitetura das versões de MVP da plataforma de telemedicina: consultas por vídeo ao vivo, prontuário eletrônico e conformidade rigorosa com a LGPD.
-                  </p>
-                  <div className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded border border-emerald-500/20 inline-block">
-                    ✓ Consultas médicas remotas e prontuário no ar
-                  </div>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center text-xs text-emerald-400 font-mono">
-                  oidoutortelemedicina.com.br ↗
-                </div>
-              </div>
-            </a>
+								<a
+									href={whatsappUrl}
+									target="_blank"
+									rel="noreferrer"
+									className="w-full sm:w-auto px-6 py-3.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-semibold rounded-xl border border-slate-700 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2.5 text-sm"
+								>
+									<span>Vamos Conversar</span>
+									<MessageSquare className="w-4 h-4 text-indigo-400" />
+								</a>
+							</div>
 
-            {/* Project 3 - GreenInvest */}
-            <a 
-              href="https://www.greeninvest.com.br/" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] hover:border-teal-500/50 transition-all flex flex-col block"
-            >
-              <div className="h-64 bg-slate-950 relative overflow-hidden border-b border-white/5">
-                <img 
-                  src="/greeninvest.png" 
-                  alt="GreenInvest - Fintech e Investimentos Sustentáveis" 
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-teal-600/90 text-white shadow-lg backdrop-blur-md">
-                    ★ Dev Especialista Blockchain & Web3
-                  </span>
-                </div>
-              </div>
-              <div className="p-8 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Fintech</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Blockchain</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Web3</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">EcoCharge</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-bold text-white group-hover:text-teal-400 transition-colors">
-                      GreenInvest
-                    </h3>
-                    <svg className="w-5 h-5 text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                  </div>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                    Infraestrutura blockchain para fintech de eletropostos EcoCharge. Governança on-chain auditável para investidores ativos e liquidação de transações seguras.
-                  </p>
-                  <div className="text-xs font-mono text-teal-400 bg-teal-500/10 px-3 py-1.5 rounded border border-teal-500/20 inline-block">
-                    ✓ Transações on-chain com alta performance
-                  </div>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center text-xs text-teal-400 font-mono">
-                  greeninvest.com.br ↗
-                </div>
-              </div>
-            </a>
+							{/* Botões sociais quadrados inspirados na referência */}
+							<div className="flex items-center gap-3">
+								<a
+									href="https://github.com/alexandre-henrique-rp"
+									target="_blank"
+									rel="noreferrer"
+									aria-label="GitHub de Alexandre Henrique"
+									className="w-10 h-10 rounded-lg border border-slate-800 bg-slate-900/80 hover:border-indigo-500/50 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-slate-100 transition-colors"
+								>
+									<span className="sr-only">GitHub de Alexandre Henrique</span>
+									<svg
+										className="w-4 h-4 fill-current"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											fillRule="evenodd"
+											d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+											clipRule="evenodd"
+										/>
+									</svg>
+								</a>
+								<a
+									href="https://www.linkedin.com/in/dev-alexandre-henrique"
+									target="_blank"
+									rel="noreferrer"
+									aria-label="LinkedIn de Alexandre Henrique"
+									className="w-10 h-10 rounded-lg border border-slate-800 bg-slate-900/80 hover:border-indigo-500/50 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-slate-100 transition-colors"
+								>
+									<span className="sr-only">
+										LinkedIn de Alexandre Henrique
+									</span>
+									<svg
+										className="w-4 h-4 fill-current"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											fillRule="evenodd"
+											d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+											clipRule="evenodd"
+										/>
+									</svg>
+								</a>
+								<a
+									href={whatsappUrl}
+									target="_blank"
+									rel="noreferrer"
+									aria-label="Chamar no WhatsApp"
+									className="w-10 h-10 rounded-lg border border-slate-800 bg-slate-900/80 hover:border-emerald-500/50 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-emerald-400 transition-colors"
+								>
+									<MessageSquare className="w-4 h-4" />
+								</a>
+								<a
+									href="mailto:contato@kingdevtec.com"
+									aria-label="Enviar e-mail para contato@kingdevtec.com"
+									className="w-10 h-10 rounded-lg border border-slate-800 bg-slate-900/80 hover:border-pink-500/50 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-pink-400 transition-colors"
+								>
+									<Mail className="w-4 h-4" />
+								</a>
+							</div>
+						</div>
 
-            {/* Project 4 - Agente IA */}
-            <div className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] hover:border-pink-500/50 transition-all flex flex-col">
-              <div className="h-64 bg-slate-900 relative overflow-hidden border-b border-white/5 flex items-center justify-center">
-                <div className="absolute inset-0 bg-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-48 h-5/6 border border-white/10 rounded-xl shadow-2xl bg-[#0a0a0a] flex flex-col">
-                   <div className="h-8 border-b border-white/10 flex justify-center items-center">
-                     <div className="w-12 h-1 rounded-full bg-slate-700"></div>
-                   </div>
-                   <div className="p-4 flex flex-col gap-3">
-                     <div className="w-2/3 p-2 bg-white/5 rounded-lg rounded-tl-sm self-start"></div>
-                     <div className="w-3/4 p-3 bg-pink-500/20 border border-pink-500/30 rounded-lg rounded-tr-sm self-end"></div>
-                     <div className="w-1/2 p-2 bg-white/5 rounded-lg rounded-tl-sm self-start mt-2"></div>
-                   </div>
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-pink-600/90 text-white shadow-lg backdrop-blur-md">
-                    ★ Automação & IA
-                  </span>
-                </div>
-              </div>
-              <div className="p-8 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">WhatsApp API</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">OpenAI</span>
-                    <span className="px-2 py-1 text-xs font-mono rounded bg-white/5 text-slate-300 border border-white/10">Webhooks</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">Agente IA de Vendas</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                    Atendimento com IA generativa conectada ao WhatsApp oficial: qualifica leads comerciais, responde dúvidas frequentes e agenda reuniões no seu calendário.
-                  </p>
-                  <div className="text-xs font-mono text-pink-400 bg-pink-500/10 px-3 py-1.5 rounded border border-pink-500/20 inline-block">
-                    ✓ Resposta imediata para novos leads
-                  </div>
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center text-xs text-pink-400 font-mono">
-                  Solução Customizada ↗
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+						{/* Coluna Direita: Foto com Halo Luminoso + Card de Código + 3 Métricas Flutuantes */}
+						<div className="lg:col-span-6 relative flex items-center justify-center min-h-[460px] sm:min-h-[540px]">
+							{/* Halo circular luminoso inspirado na referência nas cores King Dev Tec */}
+							<div className="absolute w-[310px] h-[310px] sm:w-[410px] sm:h-[410px] rounded-full bg-indigo-950/50 border border-indigo-500/30 shadow-[0_0_90px_rgba(79,70,229,0.35)] pointer-events-none" />
+							<div className="absolute w-[350px] h-[350px] sm:w-[450px] sm:h-[450px] rounded-full border border-pink-500/15 pointer-events-none" />
 
-      {/* Como Trabalho / Metodologia */}
-      <section id="processo" className="relative z-10 py-24 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16 text-center">
-            <div className="text-indigo-400 font-mono text-xs uppercase tracking-widest mb-3">Processo Transparente</div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Como funciona a parceria</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Sem mistério ou promessas vagas. Um processo objetivo desenhado para colocar seu software no ar sem dor de cabeça.
-            </p>
-          </div>
+							{/* Imagem principal do Alexandre com prioridade máxima de LCP */}
+							<div className="relative z-10 flex flex-col items-center">
+								<img
+									src="/alexandre-hero.webp"
+									alt="Alexandre Henrique — Desenvolvedor Full-Stack e Fundador da King Dev Tec"
+									width={620}
+									height={868}
+									fetchPriority="high"
+									className="w-[270px] sm:w-[340px] md:w-[370px] h-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.85)] select-none"
+								/>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] relative overflow-hidden group">
-              <div className="text-5xl font-extrabold text-white/10 font-mono mb-4 group-hover:text-indigo-500/30 transition-colors">01</div>
-              <h3 className="text-xl font-bold text-white mb-2">Diagnóstico Técnico Inicial</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Conversa objetiva no WhatsApp ou chamada de vídeo para entender o modelo de negócio, mapear gargalos e definir as funcionalidades prioritárias.
-              </p>
-            </div>
+								{/* Card flutuante na base do retrato: Clean Code / Soluções Escaláveis */}
+								<div className="-mt-12 relative z-20 w-[290px] sm:w-[330px] rounded-xl border border-indigo-500/40 bg-slate-950/95 backdrop-blur-md px-5 py-4 shadow-xl flex items-center gap-4">
+									<div className="w-11 h-11 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 font-mono font-bold text-lg">
+										{"</>"}
+									</div>
+									<div className="text-xs sm:text-sm space-y-1 text-slate-200 font-medium">
+										<div className="flex items-center gap-2">
+											<span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+											<span>Código Limpo & 100% Seu</span>
+										</div>
+										<div className="flex items-center gap-2 text-slate-300">
+											<span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+											<span>Pequenos Projetos & MVPs</span>
+										</div>
+										<div className="flex items-center gap-2 text-slate-400">
+											<span className="w-1.5 h-1.5 rounded-full bg-pink-400" />
+											<span>Sem Burocracia de Agência</span>
+										</div>
+									</div>
+								</div>
+							</div>
 
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] relative overflow-hidden group">
-              <div className="text-5xl font-extrabold text-white/10 font-mono mb-4 group-hover:text-pink-500/30 transition-colors">02</div>
-              <h3 className="text-xl font-bold text-white mb-2">Escopo & Proposta Sob Medida</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Entrega de proposta técnica detalhada com escopo alinhado à sua necessidade real e investimento transparente. Você sabe exatamente o que esperar.
-              </p>
-            </div>
+							{/* 3 Cards de Indicadores Empilhados à Direita (Desktop/Tablet) */}
+							<div className="hidden sm:flex flex-col gap-3.5 absolute right-0 top-6 z-20 w-44">
+								<div className="rounded-xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 shadow-lg hover:border-indigo-500/50 transition-colors">
+									<div className="flex items-center justify-between mb-1">
+										<span className="text-2xl font-extrabold text-slate-100 tabular-nums">
+											8+
+										</span>
+										<Briefcase className="w-4 h-4 text-indigo-400" />
+									</div>
+									<p className="text-xs text-slate-400 leading-snug">
+										Sistemas & MVPs em Produção
+									</p>
+								</div>
 
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] relative overflow-hidden group">
-              <div className="text-5xl font-extrabold text-white/10 font-mono mb-4 group-hover:text-emerald-500/30 transition-colors">03</div>
-              <h3 className="text-xl font-bold text-white mb-2">Sprints com Validação Contínua</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Você acompanha o software funcionando em ambiente de testes ao longo de cada ciclo. Sem "caixa preta" e sem surpresas no produto final.
-              </p>
-            </div>
+								<div className="rounded-xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 shadow-lg hover:border-pink-500/50 transition-colors">
+									<div className="flex items-center justify-between mb-1">
+										<span className="text-2xl font-extrabold text-slate-100 tabular-nums">
+											5
+										</span>
+										<Layers className="w-4 h-4 text-pink-400" />
+									</div>
+									<p className="text-xs text-slate-400 leading-snug">
+										Linhas de Pequenos Projetos Rápidos
+									</p>
+								</div>
 
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] relative overflow-hidden group">
-              <div className="text-5xl font-extrabold text-white/10 font-mono mb-4 group-hover:text-teal-500/30 transition-colors">04</div>
-              <h3 className="text-xl font-bold text-white mb-2">Deploy + Garantia Pós-Entrega</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Deploy na sua infraestrutura, repositório 100% transferido para você e período de garantia para correções e suporte técnico.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+								<div className="rounded-xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-4 shadow-lg hover:border-emerald-500/50 transition-colors">
+									<div className="flex items-center justify-between mb-1">
+										<span className="text-2xl font-extrabold text-emerald-400 tabular-nums">
+											100%
+										</span>
+										<Star className="w-4 h-4 text-emerald-400" />
+									</div>
+									<p className="text-xs text-slate-400 leading-snug">
+										Compromisso & Código Proprietário
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
 
-      {/* Redução de Risco / Garantia */}
-      <section className="relative z-10 py-16 px-6">
-        <div className="max-w-7xl mx-auto p-8 md:p-12 rounded-3xl border border-white/10 bg-gradient-to-r from-indigo-950/40 via-black to-pink-950/20 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Compromisso e Segurança para você</h3>
-            <p className="text-slate-400 text-sm md:text-base max-w-2xl">
-              Código-fonte seu desde o início. Total transparência em cada entrega técnica e suporte garantido.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 rounded-xl">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-              NDA e Sigilo Comercial Garantidos
-            </div>
-          </div>
-        </div>
-      </section>
+				{/* Bento Duplo: Sobre Mim + Especialidades & Stack (Inspirado em About Me / My Expertise) */}
+				<section
+					id="sobre"
+					aria-labelledby="sobre-heading"
+					className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+				>
+					{/* Card Esquerdo: Sobre Alexandre Henrique */}
+					<article className="lg:col-span-5 rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-8 shadow-lg flex flex-col justify-between">
+						<div>
+							<h2
+								id="sobre-heading"
+								className="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2.5 mb-5"
+							>
+								<User className="w-5 h-5 text-indigo-400 shrink-0" />
+								<span>Sobre Alexandre Henrique</span>
+							</h2>
 
-      {/* Quem está por trás */}
-      <section id="sobre" className="relative z-10 py-24 px-6 border-t border-white/5 bg-black/60">
-        <div className="max-w-4xl mx-auto p-8 md:p-12 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="relative z-10 text-center md:text-left">
-            <div className="text-indigo-400 font-mono text-xs uppercase tracking-widest mb-2">Quem está por trás</div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Engenheiro Sênior focado em resultados de negócio</h2>
-            <p className="text-slate-300 text-base leading-relaxed mb-6 font-light">
-              Olá! Sou Alexandre Henrique, fundador e desenvolvedor à frente da King Dev Tec. Ao longo dos últimos anos liderei a engenharia de ERPs com certificação ICP-Brasil, plataformas de telemedicina e fintechs em Web3. 
-            </p>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Criei a King Dev Tec com um objetivo simples: eliminar o intermediário caro e burocrático para que fundadores e empresários possam tirar suas ideias do papel com a agilidade que o mercado exige.
-            </p>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-              <a 
-                href="https://github.com/alexandre-henrique-rp" 
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex items-center gap-2.5 text-xs font-mono px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.06] text-slate-200 hover:text-white transition-all shadow-sm hover:scale-105"
-              >
-                <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
-                <span>GitHub:</span>
-                <span className="text-slate-400">@alexandre-henrique-rp</span>
-              </a>
-              <a 
-                href="https://www.linkedin.com/in/dev-alexandre-henrique" 
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex items-center gap-2.5 text-xs font-mono px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#0A66C2]/60 hover:bg-white/[0.06] text-slate-200 hover:text-white transition-all shadow-sm hover:scale-105"
-              >
-                <svg className="w-4 h-4 fill-[#0A66C2]" viewBox="0 0 24 24"><path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" /></svg>
-                <span>LinkedIn:</span>
-                <span className="text-slate-400">/dev-alexandre-henrique</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+							<p className="text-slate-300 text-sm md:text-base leading-relaxed mb-4">
+								Sou engenheiro de software full-stack com foco em construir
+								ferramentas que resolvem problemas reais de faturamento,
+								atendimento e operação. Liderei o desenvolvimento de ERPs com
+								certificação ICP-Brasil, plataformas de telemedicina e fintechs
+								em blockchain.
+							</p>
+							<p className="text-slate-400 text-sm leading-relaxed mb-6">
+								Na <strong className="text-slate-200">King Dev Tec</strong>,
+								atuo em duas frentes claras: entrego{" "}
+								<strong className="text-slate-200">
+									pequenos projetos rápidos
+								</strong>{" "}
+								para negócios locais venderem mais todos os dias e construo{" "}
+								<strong className="text-slate-200">
+									sistemas sob medida e MVPs
+								</strong>{" "}
+								para empresas e startups.
+							</p>
 
-      {/* Prova Social / Depoimentos */}
-      <section id="depoimentos" className="relative z-10 py-24 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16 text-center">
-            <div className="text-pink-400 font-mono text-xs uppercase tracking-widest mb-3">Prova Social</div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">O que dizem os fundadores</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Resultados reais gerados para quem confiou seus sistemas à King Dev Tec.
-            </p>
-          </div>
+							{/* Grid 2x2 de Informações Rápidas (estilo referência) */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800/80 mb-6">
+								<div className="flex items-start gap-3">
+									<div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+										<User className="w-4 h-4" />
+									</div>
+									<div>
+										<div className="text-xs text-slate-400">Engenheiro</div>
+										<div className="text-sm font-semibold text-slate-200">
+											Alexandre Henrique
+										</div>
+									</div>
+								</div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 mb-4">★★★★★</div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">
-                  "O Alexandre liderou toda a arquitetura do nosso ERP do zero. Hoje conectamos construtoras, correspondentes Caixa e certificadoras no Brasil inteiro com assinatura ICP-Brasil sem falhas de performance."
-                </p>
-              </div>
-              <div className="pt-4 border-t border-white/5">
-                <div className="font-bold text-white text-sm">Diretoria de Tecnologia</div>
-                <div className="text-xs text-indigo-400 font-mono">SisNato Digital</div>
-              </div>
-            </div>
+								<div className="flex items-start gap-3">
+									<div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+										<MapPin className="w-4 h-4" />
+									</div>
+									<div>
+										<div className="text-xs text-slate-400">Localização</div>
+										<div className="text-sm font-semibold text-slate-200">
+											SP · Atendimento Nacional
+										</div>
+									</div>
+								</div>
 
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 mb-4">★★★★★</div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">
-                  "Colocamos a plataforma de telemedicina no ar com muita agilidade. O desenvolvimento do MVP com chamadas de vídeo funcionais foi o que nos permitiu validar a empresa rapidamente com os primeiros médicos."
-                </p>
-              </div>
-              <div className="pt-4 border-t border-white/5">
-                <div className="font-bold text-white text-sm">Coordenação de Produto</div>
-                <div className="text-xs text-emerald-400 font-mono">Oi Doutor Saúde Digital</div>
-              </div>
-            </div>
+								<div className="flex items-start gap-3">
+									<div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+										<Mail className="w-4 h-4" />
+									</div>
+									<div>
+										<div className="text-xs text-slate-400">E-mail Direto</div>
+										<div className="text-sm font-semibold text-slate-200 break-all">
+											contato@kingdevtec.com
+										</div>
+									</div>
+								</div>
 
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.01] flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 mb-4">★★★★★</div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">
-                  "A senioridade em Web3 e arquitetura de transações on-chain foi um divisor de águas. Sem reuniões desnecessárias, direto ao ponto no código e nas entregas da fintech."
-                </p>
-              </div>
-              <div className="pt-4 border-t border-white/5">
-                <div className="font-bold text-white text-sm">Operações & Estruturação</div>
-                <div className="text-xs text-teal-400 font-mono">GreenInvest Fintech</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+								<div className="flex items-start gap-3">
+									<div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+										<Clock className="w-4 h-4" />
+									</div>
+									<div>
+										<div className="text-xs text-slate-400">
+											Disponibilidade
+										</div>
+										<div className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+											<span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+											<span>Agenda Aberta</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 
-      {/* FAQ Section */}
-      <section id="faq" className="relative z-10 py-24 px-6 border-t border-white/5 bg-black/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-16 text-center">
-            <div className="text-indigo-400 font-mono text-xs uppercase tracking-widest mb-3">Tire Suas Dúvidas</div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Perguntas Frequentes</h2>
-            <p className="text-slate-400 text-lg">
-              Tudo o que você precisa saber antes de iniciar seu projeto.
-            </p>
-          </div>
+						<div className="flex flex-wrap items-center gap-3">
+							<a
+								href={whatsappUrl}
+								target="_blank"
+								rel="noreferrer"
+								className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500/50 text-xs sm:text-sm font-semibold text-slate-200 transition-colors"
+							>
+								<span>Conversar diretamente comigo</span>
+								<ArrowRight className="w-4 h-4 text-indigo-400" />
+							</a>
+						</div>
+					</article>
 
-          <div className="space-y-4">
-            {[
-              {
-                q: "Como funciona a precificação de um MVP ou Sistema?",
-                a: "A precificação é calculada sob medida, baseada estritamente na complexidade técnica e no escopo acordado, sem taxas arbitrárias de agência. Após nosso diagnóstico inicial, apresento uma proposta transparente com escopo fechado — você avalia o investimento exato antes de qualquer contratação."
-              },
-              {
-                q: "Qual o cronograma de entrega do projeto?",
-                a: "O cronograma é dimensionado de acordo com o volume de funcionalidades e integrações necessárias. Adoto metodologia ágil com sprints contínuas, garantindo que você teste e valide entregas funcionais desde os primeiros ciclos de desenvolvimento."
-              },
-              {
-                q: "Quem é o dono do código-fonte e da propriedade intelectual?",
-                a: "Você. 100% dos direitos, repositório Git, banco de dados e contas de nuvem são criados no seu nome ou transferidos integralmente na entrega. Sem travas ou dependências forçadas."
-              },
-              {
-                q: "Vocês assinam Acordo de Confidencialidade (NDA)?",
-                a: "Sim, com certeza. A proteção da sua ideia, do seu modelo de negócio e dos seus dados comerciais é prioridade absoluta."
-              },
-              {
-                q: "Como funciona o suporte após o lançamento?",
-                a: "Todo projeto inclui um período de garantia pós-entrega para correções e ajustes técnicos. Caso deseje evoluções contínuas, disponibilizo acompanhamento mensal ou novas sprints sob demanda."
-              },
-              {
-                q: "Qual a diferença entre contratar a King Dev Tec e uma agência tradicional?",
-                a: "Em uma agência você fala com vendedores, depois com gerentes de conta, que repassam para programadores júniors. Na King Dev Tec você interage diretamente com um engenheiro sênior que já liderou grandes plataformas em produção, garantindo agilidade real e investimento otimizado."
-              }
-            ].map((item, index) => (
-              <div 
-                key={index} 
-                className="border border-white/10 rounded-2xl bg-white/[0.01] overflow-hidden transition-colors hover:border-white/20"
-              >
-                <button 
-                  onClick={() => toggleFaq(index)}
-                  className="w-full text-left p-6 font-semibold text-white flex justify-between items-center gap-4 text-base md:text-lg cursor-pointer"
-                >
-                  <span>{item.q}</span>
-                  <span className="text-indigo-400 text-xl font-mono">{openFaq === index ? "−" : "+"}</span>
-                </button>
-                {openFaq === index && (
-                  <div className="px-6 pb-6 text-slate-400 text-sm md:text-base leading-relaxed border-t border-white/5 pt-4">
-                    {item.a}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+					{/* Card Direito: Especialidades & Stack de Engenharia */}
+					<article className="lg:col-span-7 rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-8 shadow-lg flex flex-col justify-between">
+						<div>
+							<div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+								<h2 className="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2.5">
+									<Code2 className="w-5 h-5 text-indigo-400 shrink-0" />
+									<span>Especialidades & Domínio Técnico</span>
+								</h2>
+								<span className="text-xs font-mono text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full">
+									Full-Stack · DevOps · AI Engineer
+								</span>
+							</div>
 
-      {/* CTA Section & Contact */}
-      <section id="contato" className="relative z-20 py-28 px-6">
-        <div className="max-w-5xl mx-auto bg-gradient-to-br from-indigo-950/70 via-black to-pink-950/40 border border-indigo-500/40 rounded-3xl p-8 md:p-16 text-center shadow-[0_0_60px_-15px_rgba(79,70,229,0.5)] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500/10 blur-[110px] rounded-full pointer-events-none"></div>
-          
-          <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full border border-amber-500/30 bg-amber-500/10 text-xs font-mono text-amber-300">
-            <span>⚠️</span> Vagas limitadas: Atendimento a projetos selecionados por ciclo
-          </div>
+							<div className="space-y-5">
+								{EXPERTISE_ITEMS.map((item) => (
+									<div key={item.name} className="space-y-1.5">
+										<div className="flex items-center justify-between text-sm gap-2">
+											<div className="flex items-center gap-2 flex-wrap">
+												<span className="font-semibold text-slate-200">
+													{item.name}
+												</span>
+												<span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+													{item.category}
+												</span>
+											</div>
+											<span className="font-mono text-xs text-slate-300 tabular-nums font-semibold">
+												{item.level}%
+											</span>
+										</div>
+										<p className="text-xs text-slate-400">{item.detail}</p>
+										<div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800/80">
+											<div
+												className={`h-full rounded-full ${item.color}`}
+												style={{ width: `${item.level}%` }}
+											/>
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-6 relative z-10">
-            Vamos tirar seu projeto do papel <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-500">com agilidade e precisão</span>?
-          </h2>
-          <p className="text-slate-300 text-base md:text-lg mb-10 max-w-2xl mx-auto relative z-10 font-light leading-relaxed">
-            Me conta em uma mensagem o que você precisa. Respondo com as perguntas certas e um caminho técnico honesto — mesmo que a resposta seja "não sou o dev certo pra isso".
-          </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-5 relative z-10 mb-8">
-            <a 
-              href={whatsappUrl} 
-              target="_blank" 
-              rel="noreferrer" 
-              className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.7)] transition-all hover:scale-105 active:scale-95 text-base"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-              Falar com Alexandre no WhatsApp →
-            </a>
-            
-            <a 
-              href="mailto:contato@kingdevtec.com" 
-              className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-colors text-base"
-            >
-              Ou prefere e-mail? contato@kingdevtec.com →
-            </a>
-          </div>
+						<div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 font-mono">
+							<span>
+								Core Stack: Node.js · React · Golang · Linux · DevOps · IA
+							</span>
+							<span className="text-emerald-400">
+								Do código ao servidor em produção
+							</span>
+						</div>
+					</article>
+				</section>
 
-          <div className="text-xs text-slate-400 font-mono">
-            Atendimento ágil direto no WhatsApp em horário comercial
-          </div>
-        </div>
-      </section>
+				{/* Vitrine Dedicada: Venda de Pequenos Projetos & Entregas Rápidas */}
+				<section
+					id="pequenos-projetos"
+					aria-labelledby="pequenos-projetos-heading"
+					className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-10 shadow-lg"
+				>
+					<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+						<div>
+							<h2
+								id="pequenos-projetos-heading"
+								className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-2"
+							>
+								<Zap className="w-6 h-6 text-emerald-400 shrink-0" />
+								<span>Pequenos Projetos & Entregas Rápidas</span>
+							</h2>
+							<p className="text-slate-400 text-sm md:text-base max-w-2xl">
+								Precisa de uma solução prática para vender, agendar ou atender
+								melhor sem esperar meses? Projetos enxutos com código seu e
+								implantação rápida.
+							</p>
+						</div>
 
-      {/* Footer */}
-      <footer className="relative z-10 py-12 px-6 border-t border-white/10 bg-black text-center md:text-left">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center">
-            <img src="/Logo_KingDevTec_01.png" alt="King Dev Tec" className="h-16 md:h-20 object-contain" />
-          </div>
-          
-          <div className="text-slate-500 text-xs md:text-sm font-mono text-center">
-            © {new Date().getFullYear()} King Dev Tec — Engenharia de Software Solo. Todos os direitos reservados.
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <a 
-              href="https://github.com/alexandre-henrique-rp" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.08] flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-105 shadow-sm"
-              aria-label="GitHub do Desenvolvedor"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
-            </a>
-            <a 
-              href="https://www.linkedin.com/in/dev-alexandre-henrique" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#0A66C2]/60 hover:bg-white/[0.08] flex items-center justify-center text-[#0A66C2] transition-all hover:scale-105 shadow-sm"
-              aria-label="LinkedIn do Desenvolvedor"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" /></svg>
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  )
+						<a
+							href={whatsappUrl}
+							target="_blank"
+							rel="noreferrer"
+							className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-400 hover:text-emerald-300 transition-colors shrink-0"
+						>
+							<span>Consultar prazo no WhatsApp</span>
+							<ArrowRight className="w-4 h-4" />
+						</a>
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{SMALL_PROJECT_OFFERS.map((offer) => {
+							const IconComponent = getOfferIcon(offer.id);
+							const borderAccent =
+								offer.accent === "emerald"
+									? "hover:border-emerald-500/50"
+									: offer.accent === "pink"
+										? "hover:border-pink-500/50"
+										: "hover:border-indigo-500/50";
+							const badgeStyle =
+								offer.accent === "emerald"
+									? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+									: offer.accent === "pink"
+										? "bg-pink-500/15 text-pink-300 border-pink-500/30"
+										: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30";
+							const iconBoxStyle =
+								offer.accent === "emerald"
+									? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+									: offer.accent === "pink"
+										? "bg-pink-500/15 text-pink-400 border-pink-500/30"
+										: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
+
+							return (
+								<article
+									key={offer.id}
+									className={`rounded-xl border border-slate-800 bg-slate-900/50 p-6 flex flex-col justify-between transition-all hover:shadow-xl ${borderAccent}`}
+								>
+									<div>
+										<div className="flex items-center justify-between gap-3 mb-4">
+											<div
+												className={`w-10 h-10 rounded-lg border flex items-center justify-center ${iconBoxStyle}`}
+											>
+												<IconComponent className="w-5 h-5" />
+											</div>
+											<span
+												className={`text-xs font-mono font-semibold px-2.5 py-1 rounded-full border ${badgeStyle}`}
+											>
+												{offer.deliveryBadge}
+											</span>
+										</div>
+
+										<h3 className="text-lg font-bold text-slate-100 mb-1">
+											{offer.title}
+										</h3>
+										<p className="text-xs font-mono text-indigo-300 mb-3">
+											Ideal para: {offer.idealFor}
+										</p>
+										<p className="text-sm text-slate-400 leading-relaxed mb-5">
+											{offer.description}
+										</p>
+
+										<ul className="space-y-2 mb-6 text-xs sm:text-sm text-slate-300">
+											{offer.features.map((feat) => (
+												<li key={feat} className="flex items-start gap-2">
+													<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+													<span>{feat}</span>
+												</li>
+											))}
+										</ul>
+									</div>
+
+									<div className="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-3">
+										<button
+											type="button"
+											onClick={() =>
+												handleSelectProjectForQuote(offer.whatsappSubject)
+											}
+											className="text-xs sm:text-sm font-semibold text-slate-200 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer"
+										>
+											<span>Pedir orçamento deste projeto</span>
+											<ArrowRight className="w-4 h-4" />
+										</button>
+
+										<a
+											href={buildProjectWhatsappUrl({
+												tipoProjeto: offer.whatsappSubject,
+											})}
+											target="_blank"
+											rel="noreferrer"
+											aria-label={`Pedir orçamento de ${offer.title} no WhatsApp`}
+											className="w-9 h-9 rounded-lg border border-slate-700 bg-slate-900 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-500 text-slate-300 flex items-center justify-center transition-colors shrink-0"
+										>
+											<ArrowUpRight className="w-4 h-4" />
+										</a>
+									</div>
+								</article>
+							);
+						})}
+
+						{/* Card extra para demandas rápidas personalizadas */}
+						<article className="rounded-xl border border-indigo-500/30 bg-slate-900/80 p-6 flex flex-col justify-between">
+							<div>
+								<div className="flex items-center justify-between gap-3 mb-4">
+									<div className="w-10 h-10 rounded-lg border border-indigo-500/30 bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
+										<Sparkles className="w-5 h-5" />
+									</div>
+									<span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/15 text-indigo-300">
+										Sob Demanda
+									</span>
+								</div>
+
+								<h3 className="text-lg font-bold text-slate-100 mb-2">
+									Precisa de Outro Pequeno Projeto ou Integração?
+								</h3>
+								<p className="text-sm text-slate-400 leading-relaxed mb-5">
+									Desenvolvo calculadoras de orçamento, painéis internos,
+									integrações com APIs (Asaas, Mercado Pago, ERPs) e ferramentas
+									específicas para destravar sua rotina.
+								</p>
+
+								<ul className="space-y-2 mb-6 text-xs sm:text-sm text-slate-300">
+									<li className="flex items-start gap-2">
+										<CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+										<span>Integrações de pagamento e emissão de cobrança</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+										<span>
+											Dashboards e automação de planilhas operacionais
+										</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+										<span>
+											Escopo fechado e entrega rápida direto no seu domínio
+										</span>
+									</li>
+								</ul>
+							</div>
+
+							<button
+								type="button"
+								onClick={() =>
+									handleSelectProjectForQuote(
+										"Pequeno Projeto / Integração Sob Medida",
+									)
+								}
+								className="w-full py-3 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+							>
+								<span>Descrever Minha Ideia</span>
+								<ArrowRight className="w-4 h-4" />
+							</button>
+						</article>
+					</div>
+				</section>
+
+				{/* Portfólio Section (Inspirada em "Selected Work" da referência) */}
+				<section
+					id="portfolio"
+					aria-labelledby="portfolio-heading"
+					className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-10 shadow-lg"
+				>
+					<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+						<div>
+							<h2
+								id="portfolio-heading"
+								className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-2"
+							>
+								<FolderGit2 className="w-6 h-6 text-indigo-400 shrink-0" />
+								<span>Trabalhos Selecionados & Cases em Produção</span>
+							</h2>
+							<p className="text-slate-400 text-sm md:text-base">
+								Projetos reais arquitetados e desenvolvidos para operar em
+								produção com alta disponibilidade.
+							</p>
+						</div>
+
+						<div className="flex flex-wrap items-center gap-2">
+							{(
+								[
+									{ id: "todos", label: "Todos" },
+									{ id: "sistemas", label: "Sistemas & MVPs" },
+									{ id: "fintech", label: "Fintech & Web3" },
+									{ id: "automacao", label: "Automação & IA" },
+								] as const
+							).map((tab) => (
+								<button
+									key={tab.id}
+									type="button"
+									onClick={() => setActiveCategory(tab.id)}
+									className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+										activeCategory === tab.id
+											? "bg-indigo-600 text-white"
+											: "bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800"
+									}`}
+								>
+									{tab.label}
+								</button>
+							))}
+
+							<a
+								href="https://github.com/alexandre-henrique-rp"
+								target="_blank"
+								rel="noreferrer"
+								className="ml-2 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+							>
+								<span>Ver GitHub</span>
+								<ArrowRight className="w-3.5 h-3.5" />
+							</a>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						{filteredCases.map((project) => (
+							<article
+								key={project.id}
+								className="group rounded-xl overflow-hidden border border-slate-800 bg-slate-900/50 hover:border-indigo-500/50 transition-all flex flex-col justify-between shadow-md hover:shadow-xl"
+							>
+								<div>
+									{/* Preview Visual do Projeto com Badge no Canto Superior Direito (igual à referência) */}
+									<div className="h-56 bg-slate-950 relative overflow-hidden border-b border-slate-800/80">
+										{project.image ? (
+											<img
+												src={project.image}
+												alt={project.imageAlt}
+												loading="lazy"
+												width={640}
+												height={360}
+												className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+											/>
+										) : (
+											<div className="w-full h-full flex items-center justify-center bg-slate-950 p-6">
+												<div className="w-full max-w-xs rounded-xl border border-slate-800 bg-slate-900 p-4 space-y-3 shadow-lg">
+													<div className="flex items-center justify-between border-b border-slate-800 pb-2">
+														<span className="text-xs font-mono text-pink-400">
+															whatsapp-ai-agent.ts
+														</span>
+														<span className="text-[11px] font-mono text-emerald-400">
+															● online
+														</span>
+													</div>
+													<div className="p-2.5 rounded-lg bg-slate-950 text-xs text-slate-300 border border-slate-800">
+														Olá! Gostaria de agendar uma demonstração e receber
+														proposta.
+													</div>
+													<div className="p-2.5 rounded-lg bg-indigo-950/60 border border-indigo-500/30 text-xs text-indigo-200 ml-6">
+														Lead qualificado! Horário reservado na agenda e
+														resumo enviado ao comercial.
+													</div>
+												</div>
+											</div>
+										)}
+
+										<div className="absolute top-3 left-3">
+											<span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-slate-950/90 text-slate-200 border border-slate-700 backdrop-blur-md">
+												{project.roleBadge}
+											</span>
+										</div>
+
+										<div className="absolute top-3 right-3">
+											<span className="px-2.5 py-1 text-xs font-mono font-semibold rounded-full bg-indigo-950/90 text-indigo-300 border border-indigo-500/40 backdrop-blur-md flex items-center gap-1.5">
+												<span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+												<span>{project.categoryLabel}</span>
+											</span>
+										</div>
+									</div>
+
+									<div className="p-6">
+										<h3 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">
+											{project.title}
+										</h3>
+										<p className="text-sm text-slate-400 leading-relaxed mb-4">
+											{project.description}
+										</p>
+										<div className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 inline-flex items-center gap-1.5">
+											<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+											<span>{project.highlight}</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Rodapé do Card: Tags da Stack à esquerda + Botão Quadrado Seta à direita */}
+								<div className="px-6 pb-6 pt-3 border-t border-slate-800/60 flex items-center justify-between gap-4">
+									<div className="flex flex-wrap gap-1.5">
+										{project.tags.map((tag) => (
+											<span
+												key={tag}
+												className="px-2.5 py-1 text-xs font-mono rounded-md bg-slate-950 text-slate-300 border border-slate-800"
+											>
+												{tag}
+											</span>
+										))}
+									</div>
+
+									{project.liveUrl ? (
+										<a
+											href={project.liveUrl}
+											target="_blank"
+											rel="noreferrer"
+											aria-label={`Visitar projeto ${project.title}`}
+											className="w-9 h-9 rounded-lg border border-slate-700 bg-slate-900 hover:bg-indigo-600 hover:border-indigo-500 text-slate-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
+										>
+											<ExternalLink className="w-4 h-4" />
+										</a>
+									) : (
+										<button
+											type="button"
+											onClick={() =>
+												handleSelectProjectForQuote(
+													`Projeto similar a: ${project.title}`,
+												)
+											}
+											aria-label={`Solicitar projeto similar a ${project.title}`}
+											className="w-9 h-9 rounded-lg border border-slate-700 bg-slate-900 hover:bg-pink-600 hover:border-pink-500 text-slate-300 hover:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+										>
+											<ArrowRight className="w-4 h-4" />
+										</button>
+									)}
+								</div>
+							</article>
+						))}
+					</div>
+				</section>
+
+				{/* Marketing para Projetos Maiores: Engenharia Sob Medida & MVPs */}
+				<section
+					id="solucoes"
+					aria-labelledby="solucoes-heading"
+					className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-10 shadow-lg"
+				>
+					<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+						<div>
+							<h2
+								id="solucoes-heading"
+								className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-2"
+							>
+								<Cpu className="w-6 h-6 text-pink-400 shrink-0" />
+								<span>Engenharia de Sistemas Sob Medida, SaaS & MVPs</span>
+							</h2>
+							<p className="text-slate-400 text-sm md:text-base max-w-2xl">
+								Para startups e empresas com regras de negócio únicas que
+								softwares de prateleira não atendem. Arquitetura escalável do
+								zero à produção.
+							</p>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						<article className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-colors">
+							<div>
+								<div className="w-10 h-10 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mb-4">
+									<LayoutGrid className="w-5 h-5" />
+								</div>
+								<h3 className="text-lg font-bold text-slate-100 mb-2">
+									Sistemas de Gestão, ERPs & Portais
+								</h3>
+								<p className="text-sm text-slate-400 leading-relaxed mb-4">
+									Substitua planilhas desconectadas e múltiplas assinaturas por
+									uma plataforma própria com níveis de acesso, relatórios
+									financeiros e regras exatas da sua operação.
+								</p>
+								<ul className="space-y-2 text-xs sm:text-sm text-slate-300 mb-6">
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />
+										<span>Painéis administrativos rápidos e seguros</span>
+									</li>
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />
+										<span>Integração com bancos, NF-e, assinatura digital</span>
+									</li>
+								</ul>
+							</div>
+							<button
+								type="button"
+								onClick={() =>
+									handleSelectProjectForQuote(
+										"Sistema de Gestão / ERP Sob Medida",
+									)
+								}
+								className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1.5 cursor-pointer"
+							>
+								<span>Orçar sistema sob medida</span>
+								<ArrowRight className="w-4 h-4" />
+							</button>
+						</article>
+
+						<article className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 flex flex-col justify-between hover:border-emerald-500/50 transition-colors">
+							<div>
+								<div className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-4">
+									<Rocket className="w-5 h-5" />
+								</div>
+								<h3 className="text-lg font-bold text-slate-100 mb-2">
+									MVPs para Startups & Produtos SaaS
+								</h3>
+								<p className="text-sm text-slate-400 leading-relaxed mb-4">
+									Tire sua startup do papel com uma base tecnológica pronta para
+									receber clientes pagantes e investidores, com cobrança
+									recorrente e multi-tenancy.
+								</p>
+								<ul className="space-y-2 text-xs sm:text-sm text-slate-300 mb-6">
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+										<span>Entregas semanais em ambiente de homologação</span>
+									</li>
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+										<span>
+											Repositório Git e infraestrutura 100% no seu nome
+										</span>
+									</li>
+								</ul>
+							</div>
+							<button
+								type="button"
+								onClick={() =>
+									handleSelectProjectForQuote("MVP para Startup / Produto SaaS")
+								}
+								className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1.5 cursor-pointer"
+							>
+								<span>Planejar meu MVP</span>
+								<ArrowRight className="w-4 h-4" />
+							</button>
+						</article>
+
+						<article className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 flex flex-col justify-between hover:border-pink-500/50 transition-colors">
+							<div>
+								<div className="w-10 h-10 rounded-lg bg-pink-500/15 border border-pink-500/30 text-pink-400 flex items-center justify-center mb-4">
+									<Database className="w-5 h-5" />
+								</div>
+								<h3 className="text-lg font-bold text-slate-100 mb-2">
+									Consultoria, Arquitetura & Refatoração
+								</h3>
+								<p className="text-sm text-slate-400 leading-relaxed mb-4">
+									Seu sistema atual trava, está lento ou difícil de evoluir?
+									Realizo diagnóstico de banco de dados, revisão de segurança e
+									destravo gargalos técnicos.
+								</p>
+								<ul className="space-y-2 text-xs sm:text-sm text-slate-300 mb-6">
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-pink-400 shrink-0" />
+										<span>Otimização de queries, cache e infraestrutura</span>
+									</li>
+									<li className="flex items-center gap-2">
+										<CheckCircle2 className="w-4 h-4 text-pink-400 shrink-0" />
+										<span>Apoio técnico sênior para times em crescimento</span>
+									</li>
+								</ul>
+							</div>
+							<button
+								type="button"
+								onClick={() =>
+									handleSelectProjectForQuote(
+										"Consultoria & Arquitetura de Software",
+									)
+								}
+								className="text-sm font-semibold text-pink-400 hover:text-pink-300 inline-flex items-center gap-1.5 cursor-pointer"
+							>
+								<span>Agendar diagnóstico técnico</span>
+								<ArrowRight className="w-4 h-4" />
+							</button>
+						</article>
+					</div>
+				</section>
+
+				{/* Como Trabalho / Metodologia (Inspirada em "My Work Process" da referência) */}
+				<section
+					id="processo"
+					aria-labelledby="processo-heading"
+					className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-10 shadow-lg"
+				>
+					<h2
+						id="processo-heading"
+						className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-10"
+					>
+						<Layers className="w-6 h-6 text-indigo-400 shrink-0" />
+						<span>Meu Processo de Trabalho</span>
+					</h2>
+
+					<div className="relative">
+						{/* Linha horizontal conectora em telas grandes */}
+						<div className="hidden lg:block absolute top-7 left-12 right-12 h-px bg-indigo-500/30 z-0" />
+
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 relative z-10">
+							{PROCESS_STEPS.map((item) => {
+								const StepIcon = item.icon;
+								return (
+									<div
+										key={item.step}
+										className="flex flex-col items-center text-center group"
+									>
+										<div className="w-14 h-14 rounded-full bg-slate-950 border-2 border-indigo-500/50 group-hover:border-emerald-400 shadow-[0_0_20px_rgba(79,70,229,0.25)] flex items-center justify-center text-indigo-400 group-hover:text-emerald-400 transition-colors mb-4">
+											<StepIcon className="w-5 h-5" />
+										</div>
+										<span className="text-xs font-mono font-bold text-indigo-400 mb-1 tabular-nums">
+											{item.step}
+										</span>
+										<h3 className="text-base font-bold text-slate-100 mb-2">
+											{item.title}
+										</h3>
+										<p className="text-xs text-slate-400 leading-relaxed">
+											{item.description}
+										</p>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				</section>
+
+				{/* Bento Duplo: Prova Social + Em Números (Inspirado em "What Clients Say" + "By The Numbers") */}
+				<section
+					id="depoimentos"
+					aria-labelledby="depoimentos-heading"
+					className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+				>
+					{/* Coluna Esquerda: O Que Dizem os Clientes */}
+					<div className="lg:col-span-6 rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-8 shadow-lg flex flex-col justify-between">
+						<div>
+							<h2
+								id="depoimentos-heading"
+								className="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2.5 mb-6"
+							>
+								<Quote className="w-5 h-5 text-indigo-400 shrink-0" />
+								<span>O Que Dizem os Clientes</span>
+							</h2>
+
+							<div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+								<div className="flex items-center justify-between gap-2 mb-4">
+									<div className="flex items-center gap-1 text-amber-400">
+										<span className="sr-only">Avaliação 5 de 5 estrelas</span>
+										<Star className="w-4 h-4 fill-current" />
+										<Star className="w-4 h-4 fill-current" />
+										<Star className="w-4 h-4 fill-current" />
+										<Star className="w-4 h-4 fill-current" />
+										<Star className="w-4 h-4 fill-current" />
+									</div>
+									<span className="text-xs font-mono text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">
+										{currentTestimonial.badge}
+									</span>
+								</div>
+
+								<blockquote className="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
+									"{currentTestimonial.quote}"
+								</blockquote>
+
+								<div className="flex items-center justify-between pt-4 border-t border-slate-800">
+									<div>
+										<div className="font-bold text-slate-100 text-sm">
+											{currentTestimonial.author}
+										</div>
+										<div className="text-xs text-indigo-400 font-mono">
+											{currentTestimonial.role}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Controles de seleção de depoimento (bolinhas interativas como na referência) */}
+						<div className="flex items-center justify-between mt-5">
+							<div className="flex items-center gap-2">
+								{TESTIMONIALS.map((item, idx) => (
+									<button
+										key={item.role}
+										type="button"
+										onClick={() => setActiveTestimonial(idx)}
+										aria-label={`Ver depoimento de ${item.role}`}
+										className={`h-2.5 rounded-full transition-all cursor-pointer ${
+											activeTestimonial === idx
+												? "w-7 bg-indigo-400"
+												: "w-2.5 bg-slate-700 hover:bg-slate-500"
+										}`}
+									/>
+								))}
+							</div>
+							<span className="text-xs font-mono text-slate-400 tabular-nums">
+								0{activeTestimonial + 1} / 0{TESTIMONIALS.length}
+							</span>
+						</div>
+					</div>
+
+					{/* Coluna Direita: Em Números & Compromissos */}
+					<div className="lg:col-span-6 rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-8 shadow-lg flex flex-col justify-between">
+						<div>
+							<h2 className="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2.5 mb-6">
+								<ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+								<span>Em Números & Garantias</span>
+							</h2>
+
+							<div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+								<div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-center flex flex-col justify-center">
+									<div className="text-2xl md:text-3xl font-extrabold text-indigo-400 mb-1 tabular-nums">
+										8+
+									</div>
+									<div className="text-xs text-slate-400 leading-snug">
+										Sistemas & MVPs no Ar
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-center flex flex-col justify-center">
+									<div className="text-2xl md:text-3xl font-extrabold text-emerald-400 mb-1 tabular-nums">
+										100%
+									</div>
+									<div className="text-xs text-slate-400 leading-snug">
+										Código Proprietário
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-center flex flex-col justify-center">
+									<div className="text-2xl md:text-3xl font-extrabold text-pink-400 mb-1 tabular-nums">
+										5+
+									</div>
+									<div className="text-xs text-slate-400 leading-snug">
+										Anos de Experiência
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-center flex flex-col justify-center">
+									<div className="text-2xl md:text-3xl font-extrabold text-slate-100 mb-1 tabular-nums">
+										NDA
+									</div>
+									<div className="text-xs text-slate-400 leading-snug">
+										Sigilo em Contrato
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3.5 flex items-center justify-between gap-4">
+							<div className="flex items-center gap-3 text-xs sm:text-sm text-slate-300">
+								<ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+								<span>
+									Acordo de confidencialidade (NDA), entrega no seu repositório
+									e garantia técnica pós-deploy.
+								</span>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* FAQ Section */}
+				<section
+					id="faq"
+					aria-labelledby="faq-heading"
+					className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-7 md:p-10 shadow-lg"
+				>
+					<h2
+						id="faq-heading"
+						className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-8"
+					>
+						<MessageSquare className="w-6 h-6 text-indigo-400 shrink-0" />
+						<span>Perguntas Frequentes</span>
+					</h2>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{FAQ_ITEMS.map((item, index) => (
+							<div
+								key={item.q}
+								className="border border-slate-800 rounded-xl bg-slate-900/40 overflow-hidden transition-colors hover:border-slate-700 self-start"
+							>
+								<button
+									type="button"
+									onClick={() => toggleFaq(index)}
+									className="w-full text-left p-5 font-semibold text-slate-100 flex justify-between items-center gap-4 text-sm md:text-base cursor-pointer"
+								>
+									<span>{item.q}</span>
+									<span className="text-indigo-400 text-lg font-mono shrink-0">
+										{openFaq === index ? "−" : "+"}
+									</span>
+								</button>
+								{openFaq === index && (
+									<div className="px-5 pb-5 text-slate-400 text-sm leading-relaxed border-t border-slate-800/80 pt-3.5">
+										{item.a}
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				</section>
+
+				{/* CTA Section & Contact (Inspirada em "Let's Build Something Great" da referência) */}
+				<section
+					id="contato"
+					aria-labelledby="contato-heading"
+					className="rounded-2xl border border-indigo-500/40 bg-slate-950/90 p-7 md:p-10 shadow-[0_20px_50px_-15px_rgba(79,70,229,0.3)] relative overflow-hidden"
+				>
+					<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+						{/* Coluna 1: Chamada Direta */}
+						<div className="lg:col-span-4 flex flex-col justify-between space-y-6">
+							<div>
+								<h2
+									id="contato-heading"
+									className="text-2xl md:text-3xl font-bold text-slate-100 flex items-center gap-2.5 mb-3"
+								>
+									<Send className="w-6 h-6 text-indigo-400 shrink-0" />
+									<span>Vamos Construir Seu Projeto</span>
+								</h2>
+								<p className="text-slate-300 text-sm md:text-base leading-relaxed">
+									Tem uma ideia de sistema ou precisa de um pequeno projeto
+									rápido rodando na sua empresa? Me envie uma mensagem e receba
+									um direcionamento técnico honesto.
+								</p>
+							</div>
+
+							<div className="space-y-3">
+								<a
+									href={whatsappUrl}
+									target="_blank"
+									rel="noreferrer"
+									className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl shadow-[0_10px_25px_-5px_rgba(16,185,129,0.5)] transition-all text-sm"
+								>
+									<MessageSquare className="w-4 h-4" />
+									<span>Chamar Direto no WhatsApp</span>
+									<ArrowRight className="w-4 h-4" />
+								</a>
+								<p className="text-xs font-mono text-slate-400">
+									Resposta rápida em horário comercial · Orçamento sem
+									compromisso
+								</p>
+							</div>
+						</div>
+
+						{/* Coluna 2: Informações de Contato & Disponibilidade */}
+						<div className="lg:col-span-3 space-y-4 lg:border-l lg:border-r border-slate-800/80 lg:px-6">
+							<div className="flex items-start gap-3">
+								<div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0">
+									<Mail className="w-4 h-4" />
+								</div>
+								<div>
+									<div className="text-xs text-slate-400">E-mail</div>
+									<a
+										href="mailto:contato@kingdevtec.com"
+										className="text-sm font-medium text-slate-200 hover:text-indigo-400 transition-colors break-all"
+									>
+										contato@kingdevtec.com
+									</a>
+								</div>
+							</div>
+
+							<div className="flex items-start gap-3">
+								<div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
+									<MessageSquare className="w-4 h-4" />
+								</div>
+								<div>
+									<div className="text-xs text-slate-400">WhatsApp Direto</div>
+									<a
+										href={whatsappUrl}
+										target="_blank"
+										rel="noreferrer"
+										className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors"
+									>
+										+55 (16) 99602-9107
+									</a>
+								</div>
+							</div>
+
+							<div className="flex items-start gap-3">
+								<div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0">
+									<MapPin className="w-4 h-4" />
+								</div>
+								<div>
+									<div className="text-xs text-slate-400">Base de Operação</div>
+									<div className="text-sm font-medium text-slate-200">
+										São Paulo, Brasil (100% Remoto)
+									</div>
+								</div>
+							</div>
+
+							<div className="flex items-start gap-3">
+								<div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
+									<Clock className="w-4 h-4" />
+								</div>
+								<div>
+									<div className="text-xs text-slate-400">Status da Agenda</div>
+									<div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 mt-0.5">
+										<span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+										<span>Disponível para novos projetos</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Coluna 3: Formulário Interativo que Monta o Orçamento no WhatsApp */}
+						<form
+							onSubmit={handleContactSubmit}
+							className="lg:col-span-5 space-y-3.5"
+						>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+								<div>
+									<label
+										htmlFor="contato-nome"
+										className="block text-xs font-medium text-slate-400 mb-1"
+									>
+										Seu Nome
+									</label>
+									<input
+										id="contato-nome"
+										type="text"
+										value={nome}
+										onChange={(e) => setNome(e.target.value)}
+										placeholder="Ex.: João Martins"
+										className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none"
+									/>
+								</div>
+
+								<div>
+									<label
+										htmlFor="contato-empresa"
+										className="block text-xs font-medium text-slate-400 mb-1"
+									>
+										Empresa ou Seu WhatsApp
+									</label>
+									<input
+										id="contato-empresa"
+										type="text"
+										value={contato}
+										onChange={(e) => setContato(e.target.value)}
+										placeholder="Ex.: Clínica Vida / (11) 99999-9999"
+										className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none"
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label
+									htmlFor="contato-tipo"
+									className="block text-xs font-medium text-slate-400 mb-1"
+								>
+									O que você deseja construir?
+								</label>
+								<select
+									id="contato-tipo"
+									value={tipoProjeto}
+									onChange={(e) => setTipoProjeto(e.target.value)}
+									className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none"
+								>
+									<option value="Pequeno Projeto: Cardápio / Agendamento / Site / Catálogo">
+										Pequeno Projeto: Cardápio / Agendamento / Site / Catálogo
+									</option>
+									<option value="Cardápio Digital + Pedido no WhatsApp">
+										Cardápio Digital + Pedido no WhatsApp
+									</option>
+									<option value="Sistema de Agendamento Online">
+										Sistema de Agendamento Online
+									</option>
+									<option value="Landing Page / Site Institucional">
+										Landing Page / Site Institucional de Alta Conversão
+									</option>
+									<option value="Catálogo / Vitrine Online">
+										Catálogo / Vitrine Online com Orçamento
+									</option>
+									<option value="Bot de Atendimento & Automação WhatsApp">
+										Bot de Atendimento & Automação WhatsApp
+									</option>
+									<option value="Sistema de Gestão / ERP Sob Medida">
+										Sistema de Gestão / ERP Sob Medida
+									</option>
+									<option value="MVP para Startup / Produto SaaS">
+										MVP para Startup / Produto SaaS
+									</option>
+									<option value="Consultoria & Arquitetura de Software">
+										Consultoria & Arquitetura de Software
+									</option>
+								</select>
+							</div>
+
+							<div>
+								<label
+									htmlFor="contato-mensagem"
+									className="block text-xs font-medium text-slate-400 mb-1"
+								>
+									Resumo da sua necessidade
+								</label>
+								<textarea
+									id="contato-mensagem"
+									rows={3}
+									value={mensagem}
+									onChange={(e) => setMensagem(e.target.value)}
+									placeholder="Conte rapidamente como funciona seu negócio hoje e o que gostaria de lançar ou automatizar..."
+									className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none resize-none"
+								/>
+							</div>
+
+							<button
+								type="submit"
+								className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-[0_10px_25px_-5px_rgba(79,70,229,0.6)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+							>
+								<span>Enviar Mensagem no WhatsApp</span>
+								<Send className="w-4 h-4" />
+							</button>
+						</form>
+					</div>
+				</section>
+			</main>
+
+			{/* Footer */}
+			<footer className="relative z-10 py-10 px-6 md:px-8 border-t border-slate-800/80 bg-black">
+				<div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+					<div className="flex items-center">
+						<img
+							src="/Logo_KingDevTec_04.png"
+							alt="King Dev Tec"
+							loading="lazy"
+							width={140}
+							height={34}
+							className="h-8 w-auto object-contain"
+						/>
+					</div>
+
+					<div className="text-slate-400 text-xs font-mono text-center">
+						© {new Date().getFullYear()} King Dev Tec — Engenharia de Software
+						Independente. Todos os direitos reservados.
+					</div>
+
+					<div className="flex items-center gap-5 text-xs font-medium text-slate-400">
+						<a href="#topo" className="hover:text-slate-200 transition-colors">
+							Início
+						</a>
+						<a href="#sobre" className="hover:text-slate-200 transition-colors">
+							Sobre
+						</a>
+						<a
+							href="#pequenos-projetos"
+							className="hover:text-slate-200 transition-colors"
+						>
+							Pequenos Projetos
+						</a>
+						<a
+							href="#portfolio"
+							className="hover:text-slate-200 transition-colors"
+						>
+							Portfólio
+						</a>
+						<a
+							href="#contato"
+							className="hover:text-slate-200 transition-colors"
+						>
+							Contato
+						</a>
+						<a
+							href="#topo"
+							aria-label="Voltar ao topo da página"
+							className="w-9 h-9 rounded-full border border-slate-800 bg-slate-900 hover:border-indigo-500/50 hover:text-indigo-400 flex items-center justify-center text-slate-300 transition-colors"
+						>
+							<ArrowUp className="w-4 h-4" />
+						</a>
+					</div>
+				</div>
+			</footer>
+		</div>
+	);
 }

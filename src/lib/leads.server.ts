@@ -5,6 +5,7 @@
 // ==========================================================================
 
 import type { Lead, Prisma, Socio } from "../generated/prisma/client.js";
+import type { KanbanLeadCard } from "./kanban-funil";
 import type {
 	CriarLeadInput,
 	LeadDetalhe,
@@ -164,6 +165,12 @@ function leadDbParaDetalhe(lead: Lead & { socios?: Socio[] }): LeadDetalhe {
 		cnaesSecundarios,
 		regimeTributario,
 		qsa,
+		// ── Mensagens & Templates de IA gerados ──
+		mensagemIa: lead.mensagemIa ?? undefined,
+		assuntoEmailIa: lead.assuntoEmailIa ?? undefined,
+		canalMensagemIa: (lead.canalMensagemIa as "WHATSAPP" | "EMAIL") ?? undefined,
+		templateHtmlIa: lead.templateHtmlIa ?? undefined,
+		oportunidadesIa: lead.oportunidadesIa ?? undefined,
 	};
 }
 
@@ -572,4 +579,83 @@ export async function excluirLead(uuid: string): Promise<{ nome: string }> {
 	]);
 
 	return { nome: lead.nome };
+}
+
+/**
+ * Busca leads com projetos e orçamentos para preencher o Kanban com Drag & Drop.
+ */
+export async function listarKanbanLeadsServer(): Promise<KanbanLeadCard[]> {
+	const prisma = await getPrisma();
+	const leads = await prisma.lead.findMany({
+		where: { isActive: true },
+		orderBy: { createdAt: "desc" },
+		select: {
+			uuid: true,
+			nome: true,
+			razaoSocial: true,
+			cnpj: true,
+			etapaFunil: true,
+			telefone: true,
+			telefoneNorm: true,
+			temWhatsapp: true,
+			cidade: true,
+			origem: true,
+			createdAt: true,
+			projetos: {
+				where: { isActive: true },
+				select: {
+					valorTotalCentavos: true,
+					orcamento: {
+						select: {
+							precoFinalCentavos: true,
+							tempoTotalHoras: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	return leads.map((l) => {
+		let valorCentavos = 0;
+		let horas = 0;
+		for (const p of l.projetos) {
+			if (p.orcamento?.precoFinalCentavos) {
+				valorCentavos += p.orcamento.precoFinalCentavos;
+				horas += p.orcamento.tempoTotalHoras || 0;
+			} else if (p.valorTotalCentavos) {
+				valorCentavos += p.valorTotalCentavos;
+			}
+		}
+
+		return {
+			id: l.uuid,
+			nome: l.nome,
+			razaoSocial: l.razaoSocial ?? undefined,
+			cnpj: l.cnpj ?? undefined,
+			etapa: l.etapaFunil,
+			telefone: l.telefoneNorm || l.telefone || "",
+			temWhatsapp: l.temWhatsapp,
+			cidade: l.cidade ?? undefined,
+			valorEstimadoCentavos: valorCentavos,
+			horasEstimadas: horas,
+			createdAt: l.createdAt.toISOString(),
+			origem: l.origem,
+		};
+	});
+}
+
+/**
+ * Move a etapa de funil de um lead de forma rápida e segura.
+ */
+export async function moverEtapaLeadServer(uuid: string, novaEtapa: string) {
+	if (!uuid) {
+		throw new Error("UUID do lead é obrigatório.");
+	}
+	const prisma = await getPrisma();
+	return prisma.lead.update({
+		where: { uuid },
+		data: { etapaFunil: novaEtapa },
+		select: { uuid: true, etapaFunil: true },
+	});
 }

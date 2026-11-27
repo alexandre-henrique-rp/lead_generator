@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
+import type { KanbanLeadCard } from "./kanban-funil";
 
 const SESSION_COOKIE_NAME = "lead_generator_session";
 
@@ -109,6 +110,12 @@ export interface LeadDetalhe extends LeadItem {
 		quantidade_de_escrituracoes: number;
 	}>;
 	qsa?: SocioDetalhe[];
+	// ── Mensagens & Templates de IA ──
+	mensagemIa?: string;
+	assuntoEmailIa?: string;
+	canalMensagemIa?: "WHATSAPP" | "EMAIL";
+	templateHtmlIa?: string;
+	oportunidadesIa?: string;
 }
 
 const criarLeadSchema = z.object({
@@ -381,4 +388,30 @@ export const excluirLeadServerFn = createServerFn({ method: "POST" })
 		await requireAuth();
 		const { excluirLead } = await import("./leads.server");
 		return excluirLead(uuid);
+	});
+
+/**
+ * Busca leads para o quadro Kanban do Funil (/leads/funil)
+ */
+export const listarKanbanLeadsServerFn = createServerFn({ method: "GET" })
+	.handler(async (): Promise<KanbanLeadCard[]> => {
+		await requireAuth();
+		const { listarKanbanLeadsServer } = await import("./leads.server");
+		return listarKanbanLeadsServer();
+	});
+
+const moverEtapaSchema = z.object({
+	id: z.string().min(1, "UUID do lead obrigatório"),
+	etapa: z.string().min(1, "Nova etapa obrigatória"),
+});
+
+/**
+ * Move a etapa de um lead no Kanban com Drag & Drop
+ */
+export const moverEtapaLeadServerFn = createServerFn({ method: "POST" })
+	.validator(moverEtapaSchema)
+	.handler(async ({ data: { id, etapa } }) => {
+		await requireAuth();
+		const { moverEtapaLeadServer } = await import("./leads.server");
+		return moverEtapaLeadServer(id, etapa);
 	});

@@ -17,7 +17,7 @@ export async function requireUserOrRedirect(to = "/login", from?: string) {
 		// href monta a URL direto — `redirect` não é search param válido
 		// de /login, então a forma { to, search } não passa no typecheck.
 		throw redirect(
-			from ? { href: `${to}?redirect=${encodeURIComponent(from)}` } : { to },
+			from ? { href: `${to}?redirect=${encodeURIComponent(from)}` } : { href: to },
 		);
 	}
 	return user;

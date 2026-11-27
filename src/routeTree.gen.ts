@@ -18,6 +18,7 @@ import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroPrecosRouteImport } from './routes/financeiro.precos'
 import { Route as LeadsIndexRouteImport } from './routes/leads.index'
 import { Route as LeadsIdRouteImport } from './routes/leads.$id'
+import { Route as LeadsFunilRouteImport } from './routes/leads.funil'
 import { Route as LeadsGarimpoRouteImport } from './routes/leads.garimpo'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
@@ -71,6 +72,11 @@ const LeadsIdRoute = LeadsIdRouteImport.update({
   path: '/leads/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeadsFunilRoute = LeadsFunilRouteImport.update({
+  id: '/leads/funil',
+  path: '/leads/funil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeadsGarimpoRoute = LeadsGarimpoRouteImport.update({
   id: '/leads/garimpo',
   path: '/leads/garimpo',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
+  '/leads/funil': typeof LeadsFunilRoute
   '/leads/garimpo': typeof LeadsGarimpoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/q/$token': typeof QTokenRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
+  '/leads/funil': typeof LeadsFunilRoute
   '/leads/garimpo': typeof LeadsGarimpoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/q/$token': typeof QTokenRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
+  '/leads/funil': typeof LeadsFunilRoute
   '/leads/garimpo': typeof LeadsGarimpoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/q/$token': typeof QTokenRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/financeiro/precos'
     | '/leads/$id'
+    | '/leads/funil'
     | '/leads/garimpo'
     | '/projetos/$id'
     | '/q/$token'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/financeiro/precos'
     | '/leads/$id'
+    | '/leads/funil'
     | '/leads/garimpo'
     | '/projetos/$id'
     | '/q/$token'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/financeiro/precos'
     | '/leads/$id'
+    | '/leads/funil'
     | '/leads/garimpo'
     | '/projetos/$id'
     | '/q/$token'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   PerfilRoute: typeof PerfilRoute
   FinanceiroPrecosRoute: typeof FinanceiroPrecosRoute
   LeadsIdRoute: typeof LeadsIdRoute
+  LeadsFunilRoute: typeof LeadsFunilRoute
   LeadsGarimpoRoute: typeof LeadsGarimpoRoute
   ProjetosIdRoute: typeof ProjetosIdRoute
   QTokenRoute: typeof QTokenRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeadsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leads/funil': {
+      id: '/leads/funil'
+      path: '/leads/funil'
+      fullPath: '/leads/funil'
+      preLoaderRoute: typeof LeadsFunilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leads/garimpo': {
       id: '/leads/garimpo'
       path: '/leads/garimpo'
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   PerfilRoute: PerfilRoute,
   FinanceiroPrecosRoute: FinanceiroPrecosRoute,
   LeadsIdRoute: LeadsIdRoute,
+  LeadsFunilRoute: LeadsFunilRoute,
   LeadsGarimpoRoute: LeadsGarimpoRoute,
   ProjetosIdRoute: ProjetosIdRoute,
   QTokenRoute: QTokenRoute,

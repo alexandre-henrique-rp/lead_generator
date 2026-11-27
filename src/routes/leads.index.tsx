@@ -173,7 +173,20 @@ function LeadsPage() {
 			title="Gestão de Leads"
 			badge={`${total} leads`}
 			actions={
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2.5">
+					{/* Alternador Tabela / Kanban */}
+					<div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800">
+						<span className="px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-white shadow-sm">
+							☰ Tabela
+						</span>
+						<Link
+							to="/leads/funil"
+							className="px-3 py-1 text-xs font-medium rounded-md text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
+						>
+							<span className="text-emerald-400">⊞</span> Kanban
+						</Link>
+					</div>
+
 					<Link to="/leads/garimpo">
 						<Button variant="outline" size="sm">
 							⛏️ Garimpo AIsa
@@ -183,6 +196,7 @@ function LeadsPage() {
 						variant="primary"
 						size="sm"
 						onClick={() => setIsModalOpen(true)}
+						className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
 					>
 						+ Novo Lead Manual
 					</Button>
@@ -312,9 +326,51 @@ function LeadsPage() {
 									<tr>
 										<td
 											colSpan={7}
-											className="py-12 text-center text-slate-500"
+											className="py-16 text-center"
 										>
-											Nenhum lead encontrado para os filtros selecionados.
+											<div className="flex flex-col items-center justify-center max-w-sm mx-auto text-center space-y-3">
+												<div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-xl text-slate-400">
+													🔍
+												</div>
+												<div>
+													<p className="text-sm font-semibold text-slate-200">
+														Nenhum lead encontrado
+													</p>
+													<p className="text-xs text-slate-400 mt-1">
+														{buscaInput || params.etapa !== "ALL" || params.origem !== "ALL"
+															? "Tente ajustar os termos de busca ou remover os filtros aplicados."
+															: "Comece garimpando empresas no Google Maps ou cadastrando manualmente."}
+													</p>
+												</div>
+												<div className="flex items-center gap-2 pt-1">
+													{buscaInput || params.etapa !== "ALL" || params.origem !== "ALL" ? (
+														<Button
+															variant="secondary"
+															size="sm"
+															onClick={() => {
+																setBuscaInput("");
+																setSearch({
+																	busca: "",
+																	etapa: "ALL",
+																	origem: "ALL",
+																	page: 1,
+																});
+															}}
+														>
+															Limpar Filtros
+														</Button>
+													) : (
+														<Button
+															variant="primary"
+															size="sm"
+															onClick={() => setIsModalOpen(true)}
+															className="bg-emerald-600 hover:bg-emerald-500"
+														>
+															+ Novo Lead
+														</Button>
+													)}
+												</div>
+											</div>
 										</td>
 									</tr>
 								) : (
@@ -327,7 +383,7 @@ function LeadsPage() {
 												<Link
 													to="/leads/$id"
 													params={{ id: lead.id }}
-													className="font-bold text-slate-100 hover:text-indigo-400 block text-sm"
+													className="font-bold text-slate-100 hover:text-emerald-400 block text-sm"
 												>
 													{lead.nome}
 												</Link>
@@ -354,12 +410,29 @@ function LeadsPage() {
 											</td>
 
 											<td className="py-3 px-4 font-mono">
-												<span className="text-slate-200 block">
-													{maskPhone(lead.telefone)}
-												</span>
+												<div className="flex items-center gap-1.5">
+													<span className="text-slate-200">
+														{maskPhone(lead.telefone)}
+													</span>
+													{lead.telefone && (
+														<a
+															href={`https://wa.me/55${lead.telefone.replace(/\D/g, "")}`}
+															target="_blank"
+															rel="noreferrer"
+															className={`p-1 rounded text-xs transition-colors ${
+																lead.temWhatsapp
+																	? "text-emerald-400 hover:bg-emerald-500/20"
+																	: "text-slate-500 hover:text-slate-300"
+															}`}
+															title="Abrir no WhatsApp"
+														>
+															💬
+														</a>
+													)}
+												</div>
 												{lead.temWhatsapp && (
-													<span className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
-														💬 WhatsApp
+													<span className="text-[10px] text-emerald-400/90 font-sans block mt-0.5">
+														WhatsApp Ativo
 													</span>
 												)}
 											</td>
@@ -376,7 +449,7 @@ function LeadsPage() {
 
 											<td className="py-3 px-4 text-right">
 												<Link to="/leads/$id" params={{ id: lead.id }}>
-													<Button variant="ghost" size="sm">
+													<Button variant="ghost" size="sm" className="hover:text-emerald-400">
 														Abrir Lead →
 													</Button>
 												</Link>

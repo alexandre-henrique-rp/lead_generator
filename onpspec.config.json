@@ -1,5 +1,5 @@
 {
-  "testCommand": "node --test",
+  "testCommand": "npm exec -- vitest run --reporter=tap",
   "reporter": "tap",
   "testGlobs": [
     "test/**",

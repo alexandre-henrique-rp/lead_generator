@@ -1,0 +1,54 @@
+# ==========================================================================
+# .dockerignore — lead_generator
+# Exclui arquivos desnecessários do contexto de build Docker
+# ==========================================================================
+
+# Dependências (reinstaladas no builder)
+node_modules/
+
+# Arquivos de ambiente locais (NUNCA entram na imagem)
+.env
+.env.local
+.env.*.local
+
+# Banco de dados local de desenvolvimento
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db
+prisma/*.db-shm
+prisma/*.db-wal
+
+# Output de build anterior (reconstruído no Dockerfile)
+.output/
+
+# Cache do vite
+.vite/
+
+# Arquivos de desenvolvimento e IDE
+.vscode/
+.idea/
+*.log
+*.tsbuildinfo
+
+# Git
+.git/
+.gitignore
+
+# Testes e CI
+coverage/
+*.test.ts
+*.spec.ts
+
+# Assets pesados que não são necessários no server
+# (opcional — deixe comentado se precisar de assets no SSR)
+# public/
+
+# Playwright / Storybook
+.playwright-mcp/
+storybook-static/
+
+# Outros agentes / configs locais
+.opencode/
+.mimocode/
+.impeccable/
+.agents/

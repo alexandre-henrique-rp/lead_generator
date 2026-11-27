@@ -14,6 +14,8 @@ export const TIPOS_INTERACAO = [
 	"WHATSAPP",
 	"LIGACAO",
 	"REUNIAO",
+	"PESQUISA_IA",
+	"BRASILAPI",
 	"NOTA",
 ] as const;
 

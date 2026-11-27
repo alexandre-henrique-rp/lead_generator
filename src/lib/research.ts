@@ -103,6 +103,13 @@ export const pesquisarEmpresaServerFn = createServerFn({ method: "POST" })
 				create: { leadId: lead.id, ...linhas },
 				update: linhas,
 			});
+			await prisma.interacaoLead.create({
+				data: {
+					leadId: lead.id,
+					tipo: "PESQUISA_IA",
+					resumo: `Pesquisa Grounded concluída: ${resultado.resumo.slice(0, 180)}... por ${resultado.modelo}`,
+				},
+			});
 		} catch (err) {
 			console.error(
 				`[research] ❌ falha ao persistir PesquisaLead do lead ${lead.id}:`,

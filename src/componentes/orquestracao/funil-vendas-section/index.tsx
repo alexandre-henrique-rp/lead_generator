@@ -188,37 +188,105 @@ function ProjetoFunilCard({
 				</Link>
 			</div>
 
-			{/* Trilho de etapas */}
-			<div className="px-4 py-3 flex items-center gap-2 text-[10px] font-mono">
-				<EtapaPill ok={projeto.temOrcamento} label="Orçamento" />
-				<span className="text-slate-600">→</span>
-				<EtapaPill
-					ok={propostaAceita}
-					ativo={!!proposta && !propostaAceita}
-					label="Proposta"
-				/>
-				<span className="text-slate-600">→</span>
-				<EtapaPill
-					ok={contratoAssinado}
-					ativo={!!contrato && !contratoAssinado}
-					label="Contrato"
-				/>
-				<span className="text-slate-600">→</span>
-				<EtapaPill ok={contratoAssinado} label="Execução" />
+			{/* Trilho de 4 etapas estilo Penpot */}
+			<div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 border-b border-slate-800 bg-slate-950/40">
+				<div
+					className={`p-2.5 rounded-lg border flex flex-col justify-between transition-colors ${
+						projeto.temOrcamento
+							? "border-emerald-700/60 bg-emerald-950/30 text-emerald-300"
+							: "border-slate-800 bg-slate-900/50 text-slate-400"
+					}`}
+				>
+					<div className="flex items-center justify-between text-[11px] font-bold">
+						<span>1. Orçamento & Margem</span>
+						{projeto.temOrcamento && <span>✓</span>}
+					</div>
+					<span className="text-[10px] font-mono opacity-80 mt-1">
+						{projeto.temOrcamento ? "Calculado & Salvo" : "Pendente"}
+					</span>
+				</div>
+
+				<div
+					className={`p-2.5 rounded-lg border flex flex-col justify-between transition-colors ${
+						propostaAceita
+							? "border-emerald-700/60 bg-emerald-950/30 text-emerald-300"
+							: proposta
+								? "border-amber-700/60 bg-amber-950/30 text-amber-300"
+								: "border-slate-800 bg-slate-900/50 text-slate-400"
+					}`}
+				>
+					<div className="flex items-center justify-between text-[11px] font-bold">
+						<span>2. Proposta Comercial</span>
+						{propostaAceita && <span>✓</span>}
+					</div>
+					<span className="text-[10px] font-mono opacity-80 mt-1">
+						{propostaAceita
+							? "Aceita pelo cliente"
+							: proposta
+								? proposta.status === "RASCUNHO"
+									? "Rascunho"
+									: "Aguardando aceite"
+								: "Não gerada"}
+					</span>
+				</div>
+
+				<div
+					className={`p-2.5 rounded-lg border flex flex-col justify-between transition-colors ${
+						contratoAssinado
+							? "border-emerald-700/60 bg-emerald-950/30 text-emerald-300"
+							: contrato
+								? "border-amber-700/60 bg-amber-950/30 text-amber-300"
+								: "border-slate-800 bg-slate-900/50 text-slate-400"
+					}`}
+				>
+					<div className="flex items-center justify-between text-[11px] font-bold">
+						<span>3. Contrato PKI</span>
+						{contratoAssinado && <span>✓</span>}
+					</div>
+					<span className="text-[10px] font-mono opacity-80 mt-1">
+						{contratoAssinado
+							? "Assinado digitalmente"
+							: contrato
+								? "Aguardando assinatura"
+								: "Não gerado"}
+					</span>
+				</div>
+
+				<div
+					className={`p-2.5 rounded-lg border flex flex-col justify-between transition-colors ${
+						contratoAssinado
+							? "border-indigo-700/60 bg-indigo-950/40 text-indigo-300"
+							: "border-slate-800 bg-slate-900/50 text-slate-500"
+					}`}
+				>
+					<div className="flex items-center justify-between text-[11px] font-bold">
+						<span>4. Execução & Kanban</span>
+						{contratoAssinado && <span>🚀</span>}
+					</div>
+					<span className="text-[10px] font-mono opacity-80 mt-1">
+						{contratoAssinado ? "Liberado para sprints" : "Aguardando contrato"}
+					</span>
+				</div>
 			</div>
 
-			<div className="px-4 pb-4 space-y-4">
+			<div className="p-4 space-y-4">
 				{erro && (
 					<div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
 						{erro}
 					</div>
 				)}
 
-				{/* Etapa 1 — Orçamento */}
-				<OrcamentoInline
-					projetoUuid={projeto.uuid}
-					onSaved={invalidarFunil}
-				/>
+				<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+					{/* Coluna 1: Orçamento */}
+					<div>
+						<OrcamentoInline
+							projetoUuid={projeto.uuid}
+							onSaved={invalidarFunil}
+						/>
+					</div>
+
+					{/* Coluna 2: Proposta, Contrato e Execução */}
+					<div className="space-y-4">
 
 				{/* Etapa 2 — Proposta */}
 				<div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
@@ -424,8 +492,47 @@ function ProjetoFunilCard({
 						</div>
 					)}
 				</div>
+
+				{/* Etapa 4 — Execução & Sprints Kanban */}
+				<div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+					<div className="flex items-center justify-between gap-2 mb-2">
+						<span className="text-xs font-bold text-slate-200">
+							4. Execução & Sprints Kanban
+						</span>
+						<span
+							className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+								contratoAssinado
+									? "bg-emerald-950/80 text-emerald-300 border border-emerald-800"
+									: "bg-slate-900 text-slate-500 border border-slate-800"
+							}`}
+						>
+							{contratoAssinado ? "LIBERADO" : "BLOQUEADO"}
+						</span>
+					</div>
+					<div className="flex items-center justify-between gap-2">
+						<p className="text-[11px] text-slate-400">
+							{contratoAssinado
+								? "Contrato assinado! Acompanhe as sprints e tarefas no Kanban do projeto."
+								: "Necessário assinatura digital do contrato para iniciar os ciclos de sprints."}
+						</p>
+						<Link
+							to="/projetos/$id/sprints"
+							params={{ id: projeto.uuid }}
+							className={`text-xs font-bold px-3 py-1.5 rounded-lg border inline-flex items-center gap-1.5 transition-colors ${
+								contratoAssinado
+									? "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-sm"
+									: "bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200"
+							}`}
+						>
+							<span>Ver Kanban</span>
+							<span>→</span>
+						</Link>
+					</div>
+				</div>
 			</div>
 		</div>
+	</div>
+</div>
 	);
 }
 

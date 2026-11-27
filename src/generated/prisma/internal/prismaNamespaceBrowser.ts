@@ -207,6 +207,11 @@ export const LeadScalarFieldEnum = {
   quantidadeFuncionarios: 'quantidadeFuncionarios',
   dddFax: 'dddFax',
   descricaoMotivoSituacaoCadastral: 'descricaoMotivoSituacaoCadastral',
+  mensagemIa: 'mensagemIa',
+  assuntoEmailIa: 'assuntoEmailIa',
+  canalMensagemIa: 'canalMensagemIa',
+  templateHtmlIa: 'templateHtmlIa',
+  oportunidadesIa: 'oportunidadesIa',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

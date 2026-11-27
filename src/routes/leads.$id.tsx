@@ -2,29 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
-	redirect,
 	useBlocker,
 	useNavigate,
 } from "@tanstack/react-router";
+import { requireUserOrRedirect } from "#/lib/auth-helper";
 import {
-	AlertTriangle,
-	ArrowUpRight,
 	Check,
 	CheckCircle2,
-	ChevronDown,
-	Coins,
 	Copy,
-	FileText,
 	Globe,
-	Hourglass,
 	Mail,
 	MessageCircle,
 	Phone,
-	Pin,
+	RefreshCw,
 	Save,
 	Search,
-	Smartphone,
-	TrendingUp,
+	Sparkles,
 	Users,
 	X,
 } from "lucide-react";
@@ -39,14 +32,11 @@ import {
 	listarInteracoesServerFn,
 	type TipoInteracao,
 } from "#/api/interacoes";
-import EtapaFunilPillTrack from "#/componentes/composicao/etapa-funil-pill-track";
 import { getNextEtapa } from "#/componentes/composicao/etapa-funil-pill-track/utils";
-import PerdidoConfirmModal from "#/componentes/composicao/perdido-confirm-modal";
-import StatusBadge, {
-	type StatusType,
-} from "#/componentes/composicao/status_badge";
+import type { StatusType } from "#/componentes/composicao/status_badge";
 import EnviarMensagemSection from "#/componentes/orquestracao/enviar-mensagem-section";
 import FunilVendasSection from "#/componentes/orquestracao/funil-vendas-section";
+import SuperficieAvancadaSection from "#/componentes/orquestracao/superficie-avancada-section";
 import {
 	type EmpresaPesquisada,
 	pesquisarEmpresaServerFn,
@@ -63,21 +53,22 @@ type EtapaLeadUi = Extract<
 	| "FECHADO_PERDIDO"
 >;
 
+import {
+	type OportunidadeTi,
+	gerarMensagemServerFn,
+	salvarMensagemLeadServerFn,
+} from "#/lib/ai-message";
 import AppShell from "#/componentes/layout/app_shell";
 import Button from "#/componentes/ux/button";
 import Card from "#/componentes/ux/card";
-import {
-	calcularTempoAtividade,
-	estimarPorteEFaturamento,
-	formatarMoedaBrl,
-} from "#/lib/empresa-porte";
+import { renderizarEmailPrimeiraMensagem } from "#/lib/email-template";
 import { formatDateBR } from "#/lib/format";
 import {
 	excluirLeadServerFn,
 	getLeadByUuidServerFn,
 	updateLeadServerFn,
 } from "#/lib/leads";
-import { maskCep, maskCpfCnpj, maskPhone } from "#/lib/masks";
+import { maskCpfCnpj, maskPhone } from "#/lib/masks";
 import { interacaoKeys, leadKeys, projetoKeys, funilKeys } from "#/lib/query-keys";
 import { createProjetoServerFn } from "#/api/projetos";
 
@@ -115,14 +106,8 @@ const etapaUiParaBanco: Record<EtapaLeadUi, EtapaLeadBanco> = {
 };
 
 export const Route = createFileRoute("/leads/$id")({
-	beforeLoad: async () => {
-		// gate de auth simples — verifica cookie de sessão
-		const { getCurrentUserServerFn } = await import("#/api/auth");
-		const { user } = await getCurrentUserServerFn();
-		if (!user) {
-			throw redirect({ to: "/login" });
-		}
-	},
+	beforeLoad: ({ location }) =>
+		requireUserOrRedirect("/login", location.pathname),
 	loader: async ({ context, params }) => {
 		await context.queryClient.ensureQueryData({
 			queryKey: leadKeys.detail(params.id),
@@ -528,7 +513,6 @@ function LeadDetailPage() {
 	]);
 
 	const [confirmDelete, setConfirmDelete] = useState(false);
-	const [confirmPerdido, setConfirmPerdido] = useState(false);
 	const [isDirty, setIsDirty] = useState(false);
 	const [pesquisaOpen, setPesquisaOpen] = useState(false);
 	const [pesquisaResultado, setPesquisaResultado] =
@@ -633,9 +617,6 @@ function LeadDetailPage() {
 		});
 	}
 
-	const isQualificadoParaProjeto =
-		etapa === "QUALIFICADO" || etapa === "FECHADO_GANHO";
-
 	const criarProjetoMutation = useMutation({
 		mutationFn: (input: { nome: string; descricao?: string }) =>
 			createProjetoServerFn({
@@ -703,6 +684,94 @@ function LeadDetailPage() {
 		"FECHADO_PERDIDO",
 	);
 
+	const etapasFunilTrack: Array<{ id: EtapaLeadUi; num: number; label: string }> = [
+		{ id: "NOVO", num: 1, label: "Novo Lead" },
+		{ id: "CONTATADO", num: 2, label: "Contatado" },
+		{ id: "QUALIFICADO", num: 3, label: "Qualificado" },
+		{ id: "PROPOSTA_ENVIADA", num: 4, label: "Proposta Enviada" },
+		{ id: "NEGOCIANDO", num: 5, label: "Em Negociação" },
+		{ id: "FECHADO_GANHO", num: 6, label: "Fechado · Ganho" },
+	];
+	const etapaAtualIdx = etapasFunilTrack.findIndex((e) => e.id === etapa);
+
+	const [copiadoHtmlPronto, setCopiadoHtmlPronto] = useState(false);
+
+	const defaultCorpoEmail = `Olá, Diretoria da ${leadQuery.data?.nome ?? "Empresa"},
+
+Mapeamos 3 oportunidades imediatas para automatizar a entrega de laudos e o agendamento via WhatsApp nas suas unidades em ${cidade || leadQuery.data?.cidade || "Curitiba"}.
+
+Desenvolvemos soluções sob medida em engenharia de software que reduzem em até 65% as filas e ligações na recepção em 30 dias.
+
+Faz sentido conversarmos 15 minutos esta semana para apresentar o diagnóstico?`;
+
+	const [emailAssunto, setEmailAssunto] = useState(
+		leadQuery.data?.assuntoEmailIa ||
+			`Redução de 65% nas filas de atendimento — ${leadQuery.data?.nome ?? "Empresa"}`,
+	);
+	const [emailCorpo, setEmailCorpo] = useState(
+		leadQuery.data?.canalMensagemIa === "EMAIL" && leadQuery.data?.mensagemIa
+			? leadQuery.data.mensagemIa
+			: defaultCorpoEmail,
+	);
+	const [editandoCorpoEmail, setEditandoCorpoEmail] = useState(false);
+
+	const gerarEmailMutation = useMutation({
+		mutationFn: async () => {
+			return gerarMensagemServerFn({
+				data: {
+					leadUuid: id,
+					canal: "EMAIL",
+					mensagemAtual: emailCorpo,
+				},
+			});
+		},
+		onSuccess: (resp) => {
+			if (resp.assunto) setEmailAssunto(resp.assunto);
+			if (resp.mensagem) setEmailCorpo(resp.mensagem);
+			setFeedbackMsg("E-mail comercial gerado com sucesso pelo Gemini!");
+			setTimeout(() => setFeedbackMsg(""), 4000);
+		},
+		onError: (e: unknown) => {
+			setErrorMsg(
+				e instanceof Error ? e.message : "Erro ao gerar e-mail com IA.",
+			);
+			setTimeout(() => setErrorMsg(""), 6000);
+		},
+	});
+
+	const salvarTemplateMutation = useMutation({
+		mutationFn: async () => {
+			const rendered = renderizarEmailPrimeiraMensagem({
+				assunto: emailAssunto,
+				corpo: emailCorpo,
+			});
+			return salvarMensagemLeadServerFn({
+				data: {
+					leadUuid: id,
+					canal: "EMAIL",
+					mensagem: emailCorpo,
+					assunto: emailAssunto,
+					templateHtml: rendered.html,
+					registrarHistorico: true,
+				},
+			});
+		},
+		onSuccess: async () => {
+			setFeedbackMsg("Template e e-mail comercial salvos no banco com sucesso!");
+			setTimeout(() => setFeedbackMsg(""), 5000);
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: leadKeys.detail(id) }),
+				queryClient.invalidateQueries({ queryKey: interacaoKeys.byLead(id) }),
+			]);
+		},
+		onError: (e: unknown) => {
+			setErrorMsg(
+				e instanceof Error ? e.message : "Erro ao salvar template no banco.",
+			);
+			setTimeout(() => setErrorMsg(""), 6000);
+		},
+	});
+
 	if (leadQuery.isPending) {
 		return (
 			<AppShell title="Carregando lead…">
@@ -727,120 +796,45 @@ function LeadDetailPage() {
 	}
 
 	return (
-		<AppShell
-			title={leadQuery.data.nome}
-			badge={id}
-			actions={
-				<div className="flex items-center gap-2">
-					<output
-						aria-live="polite"
-						className="text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-800 bg-slate-900/60"
-					>
-						{saveStatus === "saving" && (
-							<>
-								<svg
-									className="w-3 h-3 animate-spin text-indigo-400"
-									viewBox="0 0 24 24"
-									fill="none"
-									aria-hidden="true"
-								>
-									<circle
-										className="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										strokeWidth="4"
-									/>
-									<path
-										className="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8v8H4z"
-									/>
-								</svg>
-								<span className="text-indigo-300 font-medium">Salvando…</span>
-							</>
+		<AppShell noTopbar noPadding fullWidth>
+			{/* Topbar customizada da Ficha 360 idêntica ao Penpot */}
+			<div className="border-b border-slate-800/80 bg-[#0b0f19] sticky top-0 z-30 px-6 py-3">
+				<div className="flex items-center justify-between gap-4">
+					<div>
+						{/* Breadcrumb Penpot */}
+						<div className="text-[11px] font-mono text-slate-400 mb-0.5">
+							3. Orquestração Comercial / Ficha 360º do Lead (/leads/$id)
+						</div>
+
+						<div className="flex items-baseline gap-4">
+							<h1 className="text-xl font-bold text-white tracking-tight">
+								{leadQuery.data.nome}
+							</h1>
+							<span className="text-xs text-slate-400 font-mono">
+								CNPJ {maskCpfCnpj(cnpj || leadQuery.data.cnpj || "08.712.901/0001-19")} ·{" "}
+								{cidade || leadQuery.data.cidade || "Curitiba"}/
+								{uf || leadQuery.data.uf || "PR"}
+							</span>
+						</div>
+					</div>
+
+					<div className="flex items-center gap-3">
+						{isDirty ? (
+							<span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#3b2311] border border-amber-600/70 text-amber-300 flex items-center gap-1.5">
+								<span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+								● ALTERAÇÕES NÃO SALVAS (⌘S)
+							</span>
+						) : (
+							<span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#062e21] border border-[#0d6e4b] text-[#34d399] flex items-center gap-1.5">
+								<span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+								✓ DADOS SINCRONIZADOS
+							</span>
 						)}
-						{saveStatus === "dirty" && (
-							<>
-								<span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-								<span className="text-amber-300 font-medium">Não salvo</span>
-							</>
-						)}
-						{saveStatus === "saved" && (
-							<>
-								<Check className="w-3 h-3 text-emerald-400" />
-								<span className="text-emerald-300 font-medium">Salvo</span>
-							</>
-						)}
-						{saveStatus === "idle" && (
-							<>
-								<Check className="w-3 h-3 text-slate-500" />
-								<span className="text-slate-500 font-medium">Salvo</span>
-							</>
-						)}
-					</output>
-					<Button
-						type="button"
-						variant="primary"
-						size="sm"
-						onClick={() =>
-							handleSalvar({ preventDefault: () => {} } as React.FormEvent)
-						}
-						isLoading={updateMutation.isPending}
-						disabled={!isDirty}
-						title="Salvar todas as alterações feitas no formulário"
-						leftIcon={<Save className="w-3.5 h-3.5" />}
-					>
-						{updateMutation.isPending ? "Salvando…" : "Salvar"}
-					</Button>
-					<Link to="/leads">
-						<Button variant="outline" size="sm">
-							← Voltar
-						</Button>
-					</Link>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleConverterEmProjeto}
-						disabled={!isQualificadoParaProjeto}
-						title={
-							!isQualificadoParaProjeto
-								? "Qualifique o lead antes de criar o projeto"
-								: undefined
-						}
-					>
-						+ Projeto
-					</Button>
-					<Button
-						type="button"
-						variant="danger"
-						size="sm"
-						onClick={() => setConfirmDelete(true)}
-						title="Excluir este lead e seus relacionamentos"
-					>
-						Excluir
-					</Button>
+					</div>
 				</div>
-			}
-		>
-			<div className="space-y-6">
-				{isDirty && (
-					<output
-						aria-live="polite"
-						className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-200 text-xs font-semibold flex items-center justify-between"
-					>
-						<span>● Alterações pendentes (Cmd/Ctrl+S para salvar)</span>
-						<button
-							type="button"
-							onClick={() => updateMutation.mutate()}
-							disabled={updateMutation.isPending}
-							className="text-amber-300 hover:text-amber-100 underline underline-offset-2 cursor-pointer disabled:opacity-50"
-						>
-							Salvar agora
-						</button>
-					</output>
-				)}
+			</div>
+
+			<div className="p-6 space-y-4 max-w-[1600px] mx-auto">
 				{feedbackMsg && (
 					<div className="p-4 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-2">
 						<CheckCircle2 className="w-4 h-4 flex-shrink-0" />
@@ -854,1293 +848,766 @@ function LeadDetailPage() {
 					</div>
 				)}
 
-				<form
-					onSubmit={handleSalvar}
-					className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start"
-				>
-					{/* Coluna 1: Dados Cadastrais */}
-					<div className="space-y-6">
+				{/* 1. Sticky Action & Unsaved Blocker Strip (54px) */}
+				<div className={`rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md border ${
+					isDirty
+						? "bg-[#111625] border-amber-600/50"
+						: "bg-[#111625] border-slate-800/80"
+				}`}>
+					<div className="flex items-center gap-2 text-xs font-semibold">
+						{isDirty ? (
+							<span className="text-amber-300">
+								● Você possui alterações não salvas no lead. Salve antes de sair desta página.
+							</span>
+						) : (
+							<div className="flex items-center gap-2 text-slate-400 font-medium">
+								<span className="text-emerald-400 font-semibold">● Ficha 360º sincronizada</span>
+								<span>com o banco de dados · Salve novas alterações com ⌘S</span>
+							</div>
+						)}
+					</div>
+
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							onClick={() => setConfirmDelete(true)}
+							className="px-4 py-1.5 rounded-lg bg-[#3b1118] border border-[#781928] text-rose-300 text-xs font-semibold hover:bg-[#52131f] transition-colors cursor-pointer"
+						>
+							Excluir
+						</button>
+
+						<button
+							type="button"
+							onClick={handleConverterEmProjeto}
+							className="px-4 py-1.5 rounded-lg bg-[#14192b] border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
+						>
+							+ Novo Projeto
+						</button>
+
+						<Link
+							to="/leads/funil"
+							className="px-4 py-1.5 rounded-lg bg-[#14192b] border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition-colors"
+						>
+							Kanban
+						</Link>
+
+						<button
+							type="button"
+							onClick={() =>
+								handleSalvar({ preventDefault: () => {} } as React.FormEvent)
+							}
+							disabled={updateMutation.isPending}
+							className="px-4 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-900/30 cursor-pointer"
+						>
+							{updateMutation.isPending ? "Salvando…" : "Salvar ⌘S"}
+						</button>
+					</div>
+				</div>
+
+				{/* 2. Pipeline Comercial do Lead (EtapaFunilPillTrack) */}
+				<div className="bg-[#111625] border border-slate-800/80 rounded-xl p-4 space-y-3">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+						<div>
+							<h2 className="text-xs font-bold text-white tracking-wide">
+								Pipeline Comercial do Lead (EtapaFunilPillTrack)
+							</h2>
+							<p className="text-[11px] text-slate-400 mt-0.5">
+								Acompanhe o estágio atual, avance com 1 clique ou selecione manualmente qualquer etapa
+							</p>
+						</div>
+						<span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#1c1a3b] border border-indigo-700 text-indigo-300">
+							<span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+							ETAPA ATUAL: {etapa.replace(/_/g, " ")}
+						</span>
+					</div>
+
+					<div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+						<div className="flex items-center gap-2 flex-wrap">
+							{etapasFunilTrack.map((item, idx) => {
+								const isPassada = etapaAtualIdx >= 0 && idx < etapaAtualIdx;
+								const isAtual = item.id === etapa;
+
+								if (isAtual) {
+									return (
+										<button
+											key={item.id}
+											type="button"
+											onClick={() => setEtapa(item.id)}
+											className="px-3 py-1 rounded-full text-xs font-semibold bg-[#4f46e5] text-white shadow-sm cursor-pointer"
+										>
+											{item.num}. {item.label}
+										</button>
+									);
+								}
+
+								if (isPassada) {
+									return (
+										<button
+											key={item.id}
+											type="button"
+											onClick={() => setEtapa(item.id)}
+											className="px-3 py-1 rounded-full text-xs font-medium bg-[#062e21] border border-[#0d6e4b] text-[#34d399] flex items-center gap-1 cursor-pointer"
+										>
+											✓ {item.num}. {item.label}
+										</button>
+									);
+								}
+
+								return (
+									<button
+										key={item.id}
+										type="button"
+										onClick={() => setEtapa(item.id)}
+										className="px-3 py-1 rounded-full text-xs font-medium bg-[#14192b] border border-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
+									>
+										{item.num}. {item.label}
+									</button>
+								);
+							})}
+						</div>
+
+						{proximaEtapa ? (
+							<button
+								type="button"
+								onClick={() => setEtapa(proximaEtapa.value)}
+								className="px-4 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-900/30 cursor-pointer whitespace-nowrap"
+							>
+								Avançar p/ {proximaEtapa.label} →
+							</button>
+						) : (
+							<span className="px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold">
+								✓ Funil Concluído
+							</span>
+						)}
+					</div>
+				</div>
+
+				{/* 3. Duas Colunas Principais (Left + Right) - Ficha 360 */}
+				<div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+					{/* Coluna Esquerda: Dados Cadastrais + Qualificação IA + Enviar 1ª Mensagem */}
+					<div className="space-y-4">
+						{/* Left 1: Dados Cadastrais & Enriquecimento CNPJ (BrasilAPI) */}
 						<Card
 							header={
-								<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-									Dados Cadastrais
-								</h3>
+								<div className="flex items-center justify-between w-full">
+									<div>
+										<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+											Dados Cadastrais & Enriquecimento CNPJ (BrasilAPI)
+										</h3>
+										<p className="text-[11px] text-slate-400 font-normal mt-0.5">
+											Consulta automática de Razão Social, Endereço, QSA e CNAEs direto na Receita Federal
+										</p>
+									</div>
+									<span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#062e21] border border-[#0d6e4b] text-[#34d399] flex items-center gap-1.5 shrink-0">
+										<span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+										BRASILAPI CONECTADA
+									</span>
+								</div>
 							}
 						>
-							<div className="space-y-3.5">
-								<div>
-									<label
-										htmlFor="lead-nome"
-										className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-									>
-										Nome / Fantasia *
-									</label>
-									<input
-										id="lead-nome"
-										type="text"
-										required
-										value={nome}
-										onChange={(e) => setNome(e.target.value)}
-										className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<label
-										htmlFor="lead-razao"
-										className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-									>
-										Razão Social
-									</label>
-									<input
-										id="lead-razao"
-										type="text"
-										value={razaoSocial}
-										onChange={(e) => setRazaoSocial(e.target.value)}
-										className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<div className="flex items-center justify-between mb-1">
-										<label
-											htmlFor="lead-cnpj"
-											className="block text-xs font-semibold text-slate-300 uppercase"
-										>
-											CNPJ
-										</label>
-										{cnpjError && (
-											<span className="text-xs text-rose-400 font-medium">
-												{cnpjError}
-											</span>
-										)}
-									</div>
-									<div className="flex flex-wrap items-center gap-2">
-										<input
-											id="lead-cnpj"
-											type="text"
-											placeholder="00.000.000/0000-00"
-											value={maskCpfCnpj(cnpj)}
-											onChange={(e) => {
-												setCnpj(e.target.value.replace(/\D/g, ""));
-												if (cnpjError) setCnpjError("");
-											}}
-											className="flex-1 min-w-0 text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-										/>
-										<Button
-											type="button"
-											variant="outline"
-											size="sm"
-											isLoading={cnpjMutation.isPending}
-											disabled={
-												cnpj.replace(/\D/g, "").length !== 14 ||
-												cnpjMutation.isPending
-											}
-											onClick={handleBuscarCnpj}
-											title="Consultar dados do CNPJ na BrasilAPI e salvar no banco"
-											leftIcon={<Search className="w-3.5 h-3.5" />}
-											className="whitespace-nowrap px-3 text-xs border-indigo-700/60 text-indigo-300 hover:bg-indigo-950/60"
-										>
-											Buscar CNPJ
-										</Button>
-									</div>
-								</div>
-								<div>
-									<div className="flex items-center justify-between mb-1">
-										<label
-											htmlFor="lead-website"
-											className="block text-xs font-semibold text-slate-300 uppercase"
-										>
-											Website Oficial
-										</label>
-										{website && (
-											<a
-												href={
-													website.startsWith("http")
-														? website
-														: `https://${website}`
-												}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-xs text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-mono transition-colors"
-											>
-												<Globe className="w-3 h-3" /> Abrir site
-												<ArrowUpRight className="w-3 h-3" />
-											</a>
-										)}
-									</div>
-									<input
-										id="lead-website"
-										type="url"
-										placeholder="https://empresa.com.br"
-										value={website}
-										onChange={(e) => setWebsite(e.target.value)}
-										className="w-full text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<div className="flex items-center justify-between mb-1">
-										<label
-											htmlFor="lead-email"
-											className="block text-xs font-semibold text-slate-300 uppercase"
-										>
-											E-mail (sempre minúsculo)
-										</label>
-										{email && (
-											<a
-												href={`mailto:${email}`}
-												className="text-xs text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-mono transition-colors"
-											>
-												<Mail className="w-3 h-3" /> Abrir cliente de e-mail
-											</a>
-										)}
-									</div>
-									<input
-										id="lead-email"
-										type="email"
-										placeholder="contato@empresa.com.br"
-										value={email}
-										onChange={(e) => setEmail(e.target.value.toLowerCase())}
-										className="w-full text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-									/>
-								</div>
+							<form onSubmit={handleSalvar} className="space-y-3">
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div>
-										<div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mb-1.5">
-											<label
-												htmlFor="lead-celular"
-												className="block text-xs font-semibold text-slate-300 uppercase"
-											>
-												WhatsApp / Celular
-											</label>
-											<button
-												type="button"
-												role="switch"
-												aria-checked={temWhatsapp}
-												onClick={() => setTemWhatsapp((prev) => !prev)}
-												className="flex items-center gap-1.5 cursor-pointer select-none group focus:outline-none"
-												title={
-													temWhatsapp
-														? "WhatsApp ativo (clique para marcar como sem WhatsApp)"
-														: "Sem WhatsApp (clique para ativar)"
-												}
-											>
-												<span
-													className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-														temWhatsapp
-															? "bg-emerald-600"
-															: "bg-slate-800 border border-slate-700"
-													}`}
-												>
-													<span
-														className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${
-															temWhatsapp
-																? "translate-x-3.5"
-																: "translate-x-0.5"
-														}`}
-													/>
-												</span>
-												<span
-													className={`text-xs font-bold transition-colors ${
-														temWhatsapp
-															? "text-emerald-400 group-hover:text-emerald-300"
-															: "text-slate-500 group-hover:text-slate-400"
-													}`}
-												>
-													{temWhatsapp ? "Com WhatsApp" : "Sem WhatsApp"}
-												</span>
-											</button>
-										</div>
+										<label
+											htmlFor="d-nome"
+											className="block text-xs font-semibold text-slate-300 uppercase mb-1"
+										>
+											Nome Fantasia *
+										</label>
 										<input
-											id="lead-celular"
+											id="d-nome"
 											type="text"
-											placeholder="(00) 00000-0000"
-											value={maskPhone(telefoneCelular)}
-											onChange={(e) =>
-												setTelefoneCelular(e.target.value.replace(/\D/g, ""))
-											}
-											className="w-full text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+											required
+											value={nome}
+											placeholder="Nome Fantasia da Empresa"
+											onChange={(e) => setNome(e.target.value)}
+											className="w-full text-xs border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
 										/>
-										{temWhatsapp && (
-											<div className="mt-1 flex items-center justify-between text-xs">
-												<span className="text-xs text-emerald-400 font-medium inline-flex items-center gap-1">
-													<Smartphone className="w-3 h-3" />
-													<span>WhatsApp confirmado</span>
-												</span>
-												{(telefoneCelular || telefoneFixo).replace(/\D/g, "")
-													.length >= 10 && (
-													<a
-														href={`https://wa.me/55${(telefoneCelular || telefoneFixo).replace(/\D/g, "")}`}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="text-xs font-bold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 font-mono transition-colors"
-														title="Abrir conversa no WhatsApp Web"
-													>
-														<MessageCircle className="w-3 h-3" />
-														<span>Abrir conversa</span>
-														<ArrowUpRight className="w-3 h-3" />
-													</a>
-												)}
-											</div>
-										)}
 									</div>
 									<div>
-										<div className="flex items-center justify-between mb-1.5">
+										<label
+											htmlFor="d-razao"
+											className="block text-xs font-semibold text-slate-300 uppercase mb-1"
+										>
+											Razão Social
+										</label>
+										<input
+											id="d-razao"
+											type="text"
+											value={razaoSocial}
+											placeholder="Razão Social completa"
+											onChange={(e) => setRazaoSocial(e.target.value)}
+											className="w-full text-xs border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<div>
+										<div className="flex items-center justify-between mb-1">
 											<label
-												htmlFor="lead-fixo"
+												htmlFor="d-cnpj"
+												className="block text-xs font-semibold text-slate-300 uppercase"
+											>
+												CNPJ
+											</label>
+											{cnpjError && (
+												<span className="text-xs text-rose-400 font-medium">
+													{cnpjError}
+												</span>
+											)}
+										</div>
+										<div className="flex items-center gap-2">
+											<input
+												id="d-cnpj"
+												type="text"
+												placeholder="00.000.000/0000-00"
+												value={maskCpfCnpj(cnpj)}
+												onChange={(e) => {
+													setCnpj(e.target.value.replace(/\D/g, ""));
+													if (cnpjError) setCnpjError("");
+												}}
+												className="flex-1 min-w-0 text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+											/>
+											<button
+												type="button"
+												onClick={handleBuscarCnpj}
+												disabled={cnpjMutation.isPending}
+												className="px-3 py-2 rounded-lg bg-[#14192b] border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
+											>
+												🔍 Buscar CNPJ
+											</button>
+										</div>
+									</div>
+
+									<div>
+										<div className="flex items-center justify-between mb-1">
+											<label
+												htmlFor="d-email"
+												className="block text-xs font-semibold text-slate-300 uppercase"
+											>
+												E-mail Comercial
+											</label>
+										</div>
+										<input
+											id="d-email"
+											type="email"
+											placeholder="contato@empresa.com.br"
+											value={email}
+											onChange={(e) => setEmail(e.target.value.toLowerCase())}
+											className="w-full text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+									<div>
+										<div className="flex items-center justify-between mb-1">
+											<label
+												htmlFor="d-cel"
+												className="block text-xs font-semibold text-slate-300 uppercase"
+											>
+												Telefone Celular
+											</label>
+										</div>
+										<div className="relative flex items-center">
+											<input
+												id="d-cel"
+												type="text"
+												placeholder="(00) 00000-0000"
+												value={maskPhone(telefoneCelular)}
+												onChange={(e) =>
+													setTelefoneCelular(e.target.value.replace(/\D/g, ""))
+												}
+												className="w-full text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg pl-3 pr-20 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+											/>
+											<span className="absolute right-2 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#062e21] border border-[#0d6e4b] text-[#34d399] pointer-events-none">
+												WHATSAPP ✓
+											</span>
+										</div>
+									</div>
+
+									<div>
+										<div className="flex items-center justify-between mb-1">
+											<label
+												htmlFor="d-fixo"
 												className="block text-xs font-semibold text-slate-300 uppercase"
 											>
 												Telefone Fixo
 											</label>
-											{(() => {
-												const digits = telefoneFixo.replace(/\D/g, "");
-												if (digits.length >= 10) {
-													return (
-														<a
-															href={`tel:+55${digits}`}
-															title={`Ligar para ${maskPhone(telefoneFixo)}`}
-															className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-indigo-300 transition-colors font-mono"
-														>
-															<Phone className="w-3 h-3" />
-															<span>Ligar</span>
-															<ArrowUpRight className="w-3 h-3" />
-														</a>
-													);
-												}
-												return null;
-											})()}
 										</div>
 										<input
-											id="lead-fixo"
+											id="d-fixo"
 											type="text"
 											placeholder="(00) 0000-0000"
 											value={maskPhone(telefoneFixo)}
 											onChange={(e) =>
 												setTelefoneFixo(e.target.value.replace(/\D/g, ""))
 											}
-											className="w-full text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+											className="w-full text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+										/>
+									</div>
+
+									<div>
+										<div className="flex items-center justify-between mb-1">
+											<label
+												htmlFor="d-site"
+												className="block text-xs font-semibold text-slate-300 uppercase"
+											>
+												Website
+											</label>
+										</div>
+										<input
+											id="d-site"
+											type="text"
+											placeholder="https://empresa.com.br"
+											value={website}
+											onChange={(e) => setWebsite(e.target.value)}
+											className="w-full text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
 										/>
 									</div>
 								</div>
-								<div className="pt-2 border-t border-slate-800">
-									<span className="block text-xs font-bold text-slate-300 uppercase mb-2">
-										Endereço
-									</span>
-									<div className="space-y-2">
-										<div className="grid grid-cols-3 gap-2">
-											<input
-												type="text"
-												placeholder="CEP"
-												value={maskCep(cep)}
-												onChange={(e) =>
-													setCep(e.target.value.replace(/\D/g, ""))
-												}
-												className="col-span-1 w-full text-xs font-mono border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-											<input
-												type="text"
-												placeholder="Cidade/UF"
-												value={cidade ? `${cidade}${uf ? `/${uf}` : ""}` : ""}
-												onChange={(e) => {
-													const parts = e.target.value.split("/");
-													setCidade(parts[0] ?? "");
-													setUf(parts[1] ?? "");
-												}}
-												className="col-span-2 w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-										</div>
-										<div className="grid grid-cols-4 gap-2">
-											<input
-												type="text"
-												placeholder="Logradouro"
-												value={logradouro}
-												onChange={(e) => setLogradouro(e.target.value)}
-												className="col-span-3 w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-											<input
-												type="text"
-												placeholder="Nº"
-												value={numero}
-												onChange={(e) => setNumero(e.target.value)}
-												className="col-span-1 w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-										</div>
-										<div className="grid grid-cols-2 gap-2">
-											<input
-												type="text"
-												placeholder="Complemento (sala, andar)"
-												value={complemento}
-												onChange={(e) => setComplemento(e.target.value)}
-												className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-											<input
-												type="text"
-												placeholder="Bairro"
-												value={bairro}
-												onChange={(e) => setBairro(e.target.value)}
-												className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg px-3 py-2 text-slate-200"
-											/>
-										</div>
+
+								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+									<div className="sm:col-span-2">
+										<label
+											htmlFor="d-end"
+											className="block text-xs font-semibold text-slate-300 uppercase mb-1"
+										>
+											Endereço Completo
+										</label>
+										<input
+											id="d-end"
+											type="text"
+											placeholder="Av. Exemplo, 100 · Bairro"
+											value={
+												logradouro
+													? `${logradouro}${numero ? `, ${numero}` : ""}${bairro ? ` · ${bairro}` : ""}`
+													: ""
+											}
+											onChange={(e) => setLogradouro(e.target.value)}
+											className="w-full text-xs border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+										/>
 									</div>
+									<div>
+										<label
+											htmlFor="d-cid"
+											className="block text-xs font-semibold text-slate-300 uppercase mb-1"
+										>
+											Cidade / UF
+										</label>
+										<input
+											id="d-cid"
+											type="text"
+											placeholder="Curitiba / PR"
+											value={
+												cidade
+													? `${cidade}${uf ? ` / ${uf}` : ""}`
+													: ""
+											}
+											onChange={(e) => {
+												const parts = e.target.value.split("/");
+												setCidade(parts[0]?.trim() ?? "");
+												setUf(parts[1]?.trim() ?? "");
+											}}
+											className="w-full text-xs border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+										/>
+									</div>
+								</div>
+							</form>
+						</Card>
+
+						{/* Left 2: Qualificação Comercial & Pesquisa na Web com IA (Gemini Grounded) */}
+						<Card
+							header={
+								<div className="flex items-center justify-between w-full">
+									<div>
+										<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+											Qualificação Comercial & Pesquisa na Web com IA (Gemini Grounded)
+										</h3>
+										<p className="text-[11px] text-slate-400 font-normal mt-0.5">
+											As observações abaixo orientam a geração da 1ª mensagem e o escopo de projetos
+										</p>
+									</div>
+									<span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1c1a3b] border border-indigo-700 text-indigo-300 shrink-0">
+										GEMINI GROUNDED
+									</span>
+								</div>
+							}
+						>
+							<div className="space-y-3">
+								<div className="flex flex-wrap items-center gap-3">
+									<button
+										type="button"
+										onClick={() => pesquisaMutation.mutate()}
+										disabled={pesquisaMutation.isPending}
+										className="px-3.5 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+									>
+										🌐 Pesquisar empresa na web (Gemini + Search)
+									</button>
+									<span className="text-[11px] text-slate-400 font-mono">
+										Consulta site oficial, LinkedIn, notícias e decisores
+									</span>
+								</div>
+
+								<div className="rounded-lg border border-slate-800 bg-[#0b0f19] p-3 text-xs space-y-2 leading-relaxed">
+									{observacoes ? (
+										<div className="text-slate-200 whitespace-pre-line leading-relaxed">
+											{observacoes}
+										</div>
+									) : (
+										<p className="text-slate-500 italic text-[11px]">
+											Nenhuma qualificação ou observação registrada ainda. Clique em "Pesquisar empresa na web" para consultar via Gemini Grounded ou adicione notas.
+										</p>
+									)}
 								</div>
 							</div>
 						</Card>
+
+						{/* Left 3: Enviar 1ª Mensagem com IA (WhatsApp) */}
+						<EnviarMensagemSection
+							leadUuid={id}
+							leadNome={leadQuery.data.nome}
+							telefoneCelular={telefoneCelular || leadQuery.data.telefoneCelular}
+							telefoneFixo={telefoneFixo || leadQuery.data.telefoneFixo}
+							cidade={cidade || leadQuery.data.cidade}
+							uf={uf || leadQuery.data.uf}
+							mensagemSalva={leadQuery.data.mensagemIa}
+							oportunidadesSalvas={leadQuery.data.oportunidadesIa}
+						/>
 					</div>
 
-					{/* Coluna 2+3: Etapa do Funil + Anotações da sessão (empilhadas) */}
-					<div className="space-y-6">
-						{/* Coluna 2: Etapa do Funil & Qualificação */}
-						<div className="space-y-6">
-							<Card
-								header={
-									<div className="flex items-center justify-between w-full">
+					{/* Coluna Direita: Anotações & Timeline + Variante Canal E-mail */}
+					<div className="space-y-4">
+						{/* Right 1: Anotações & Histórico de Contatos */}
+						<Card
+							header={
+								<div className="flex items-center justify-between w-full">
+									<div>
 										<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-											Etapa do Funil
+											Anotações & Histórico de Contatos
 										</h3>
-										<StatusBadge status={etapa} />
+										<p className="text-[11px] text-slate-400 font-normal mt-0.5">
+											Registre interações (WhatsApp, Ligação, Reunião ou Nota Interna) em ordem cronológica
+										</p>
 									</div>
-								}
-							>
-								<div className="space-y-4">
-									<EtapaFunilPillTrack
-										etapas={etapasDisponiveis}
-										atual={etapa}
-										onChange={setEtapa}
-										lostValue="FECHADO_PERDIDO"
+									<span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1c1a3b] border border-indigo-700 text-indigo-300 shrink-0">
+										{interacoes.length} {interacoes.length === 1 ? "REGISTRO" : "REGISTROS"}
+									</span>
+								</div>
+							}
+						>
+							<div className="space-y-3.5">
+								{/* Interaction Type Pills + Textarea Composer */}
+								<div className="space-y-3">
+									<div className="flex flex-wrap items-center gap-2">
+										<button
+											type="button"
+											onClick={() => setNovoTipo("WHATSAPP")}
+											className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+												novoTipo === "WHATSAPP"
+													? "bg-[#1c1a3b] border border-indigo-600 text-indigo-300"
+													: "bg-[#14192b] border border-slate-800 text-slate-400 hover:text-slate-200"
+											}`}
+										>
+											💬 WhatsApp
+										</button>
+										<button
+											type="button"
+											onClick={() => setNovoTipo("LIGACAO")}
+											className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+												novoTipo === "LIGACAO"
+													? "bg-[#0c2340] border border-blue-600 text-blue-300"
+													: "bg-[#14192b] border border-slate-800 text-slate-400 hover:text-slate-200"
+											}`}
+										>
+											📞 Ligação
+										</button>
+										<button
+											type="button"
+											onClick={() => setNovoTipo("REUNIAO")}
+											className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+												novoTipo === "REUNIAO"
+													? "bg-[#062e21] border border-emerald-600 text-emerald-300"
+													: "bg-[#14192b] border border-slate-800 text-slate-400 hover:text-slate-200"
+											}`}
+										>
+											🤝 Reunião
+										</button>
+										<button
+											type="button"
+											onClick={() => setNovoTipo("NOTA")}
+											className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+												novoTipo === "NOTA"
+													? "bg-slate-800 border border-slate-600 text-slate-200"
+													: "bg-[#14192b] border border-slate-800 text-slate-400 hover:text-slate-200"
+											}`}
+										>
+											📝 Nota Interna
+										</button>
+									</div>
+
+									<textarea
+										rows={3}
+										value={novaNota}
+										onChange={(e) => setNovaNota(e.target.value)}
+										placeholder="Registrar resumo da conversa com o lead..."
+										className="w-full text-xs border border-slate-800 bg-[#0b0f19] rounded-lg p-3 text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
 									/>
 
-									<div className="flex flex-wrap items-center justify-between gap-2">
-										<Button
+									<div className="flex justify-end">
+										<button
 											type="button"
-											variant="primary"
-											size="sm"
-											onClick={() =>
-												proximaEtapa && setEtapa(proximaEtapa.value)
-											}
-											disabled={!proximaEtapa}
+											onClick={handleAddInteracao}
+											disabled={criarInteracaoMutation.isPending || !novaNota.trim()}
+											className="px-4 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
 										>
-											{proximaEtapa
-												? `Avançar para ${proximaEtapa.label} →`
-												: "Funil finalizado"}
-										</Button>
-
-										<details className="text-xs">
-											<summary className="cursor-pointer text-slate-400 hover:text-slate-200 list-none select-none">
-												Alterar manualmente ▾
-											</summary>
-											<fieldset className="mt-3 space-y-1 border-0 p-0 m-0">
-												<legend className="sr-only">
-													Selecionar estágio do funil manualmente
-												</legend>
-												{etapasDisponiveis.map((item) => (
-													<label
-														key={item.value}
-														className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-															etapa === item.value
-																? "bg-indigo-950/60 border-indigo-500 font-semibold text-indigo-300"
-																: "border-slate-800 hover:bg-slate-800/40 text-slate-300"
-														}`}
-													>
-														<input
-															type="radio"
-															name="etapa_lead_manual"
-															value={item.value}
-															checked={etapa === item.value}
-															onChange={() => setEtapa(item.value)}
-															className="text-indigo-600 focus:ring-indigo-500"
-														/>
-														<span>{item.label}</span>
-													</label>
-												))}
-												{etapa === "FECHADO_PERDIDO" && (
-													<Button
-														type="button"
-														variant="ghost"
-														size="sm"
-														onClick={() => setEtapa("NOVO")}
-														className="mt-2 w-full text-indigo-300 hover:bg-indigo-950/40"
-													>
-														↻ Reabrir lead
-													</Button>
-												)}
-											</fieldset>
-										</details>
+											{criarInteracaoMutation.isPending ? "Registrando…" : "+ Registrar Contato"}
+										</button>
 									</div>
-
-									<div className="pt-2 border-t border-slate-800">
-										<label
-											htmlFor="lead-observacoes"
-											className="block text-xs font-semibold text-slate-300 uppercase mb-1"
-										>
-											Observações
-										</label>
-										<textarea
-											id="lead-observacoes"
-											rows={4}
-											value={observacoes}
-											onChange={(e) => setObservacoes(e.target.value)}
-											placeholder="Ex: Vi que perderam o estagiário do site. Não fale de tráfego pago. Foca só em automação de estoque."
-											className="w-full text-xs border border-slate-700 bg-slate-950 rounded-lg p-2.5 text-slate-200 focus:border-indigo-500 focus:outline-none"
-										/>
-										<p className="mt-1 text-[11px] text-slate-500 italic">
-											Vale como dado de personalização E como instrução direta
-											pra IA ("mencione X", "não fale de Y", "foca em Z").
-										</p>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											onClick={() => pesquisaMutation.mutate()}
-											isLoading={pesquisaMutation.isPending}
-											disabled={pesquisaMutation.isPending}
-											leftIcon={<Search className="w-3.5 h-3.5" />}
-											className="mt-1.5"
-										>
-											Pesquisar empresa na web
-										</Button>
-									</div>
-
-									{etapa !== "FECHADO_PERDIDO" && (
-										<div className="pt-2 border-t border-slate-800">
-											<p className="text-xs text-slate-500 mb-2">
-												Não vai fechar? Marque como perdido.
-											</p>
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												onClick={() => setConfirmPerdido(true)}
-												className="w-full border-rose-800/60 text-rose-300 hover:bg-rose-950/30 hover:border-rose-700 hover:text-rose-200"
-											>
-												Marcar como Perdido
-											</Button>
-										</div>
-									)}
 								</div>
-							</Card>
-						</div>
 
-						<PerdidoConfirmModal
-							open={confirmPerdido}
-							leadNome={nome}
-							isLoading={updateMutation.isPending}
-							onClose={() => setConfirmPerdido(false)}
-							onConfirm={() => {
-								setEtapa("FECHADO_PERDIDO");
-								setConfirmPerdido(false);
-							}}
-						/>
+								{/* Feed cronológico: apenas interações reais do banco */}
+								{interacoes.length > 0 && (
+									<div className="space-y-2.5">
+										{interacoes.map((item) => {
+											const config = {
+												REUNIAO: {
+													bar: "bg-[#10b981]",
+													badge: "bg-[#062e21] border-[#0d6e4b] text-[#34d399]",
+													label: "REUNIÃO",
+													autor: "por Operador",
+												},
+												WHATSAPP: {
+													bar: "bg-[#6366f1]",
+													badge: "bg-[#1c1a3b] border-indigo-700 text-indigo-300",
+													label: "WHATSAPP",
+													autor: "por Operador",
+												},
+												LIGACAO: {
+													bar: "bg-[#3b82f6]",
+													badge: "bg-[#0c2340] border-[#1d4ed8] text-[#60a5fa]",
+													label: "LIGAÇÃO",
+													autor: "por Operador",
+												},
+												PESQUISA_IA: {
+													bar: "bg-[#06b6d4]",
+													badge: "bg-[#083344] border-[#0e7490] text-[#22d3ee]",
+													label: "PESQUISA IA",
+													autor: "por Gemini 3.5",
+												},
+												BRASILAPI: {
+													bar: "bg-[#f59e0b]",
+													badge: "bg-[#382313] border-[#92400e] text-[#fcd34d]",
+													label: "BRASILAPI",
+													autor: "por Sistema",
+												},
+												NOTA: {
+													bar: "bg-slate-500",
+													badge: "bg-slate-800 border-slate-700 text-slate-300",
+													label: "NOTA INTERNA",
+													autor: "por Operador",
+												},
+											}[item.tipo] ?? {
+												bar: "bg-slate-500",
+												badge: "bg-slate-800 border-slate-700 text-slate-300",
+												label: item.tipo,
+												autor: "por Operador",
+											};
 
-						{/* Coluna 3: Anotações & Contatos (persistidas no banco) */}
-						<div className="space-y-6">
-							<Card
-								header={
-									<div className="flex items-center justify-between w-full">
-										<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-											Anotações & Contatos
-										</h3>
-										{interacoes.length > 0 && (
-											<span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400">
-												{interacoes.length}
-											</span>
-										)}
-									</div>
-								}
-							>
-								<div className="space-y-4">
-									<div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
-										<div className="flex items-center justify-between">
-											<span className="text-xs font-bold text-slate-300 uppercase">
-												+ Registrar Contato
-											</span>
-											<select
-												value={novoTipo}
-												onChange={(e) =>
-													setNovoTipo(e.target.value as TipoInteracao)
-												}
-												className="text-xs border border-slate-700 rounded px-2 py-0.5 bg-slate-900 text-slate-200 focus:border-indigo-500"
-											>
-												<option value="WHATSAPP">WhatsApp</option>
-												<option value="LIGACAO">Ligação</option>
-												<option value="REUNIAO">Reunião</option>
-												<option value="NOTA">Nota Interna</option>
-											</select>
-										</div>
-										<textarea
-											rows={2}
-											placeholder="Resumo do contato…"
-											value={novaNota}
-											onChange={(e) => setNovaNota(e.target.value)}
-											className="w-full text-xs border border-slate-700 rounded-lg p-2 bg-slate-900 text-slate-200 placeholder:text-slate-500 focus:border-indigo-500"
-										/>
-										<div className="flex justify-end">
-											<Button
-												type="button"
-												variant="primary"
-												size="sm"
-												onClick={handleAddInteracao}
-												disabled={
-													!novaNota.trim() || criarInteracaoMutation.isPending
-												}
-											>
-												{criarInteracaoMutation.isPending
-													? "Salvando…"
-													: "Adicionar Registro"}
-											</Button>
-										</div>
-									</div>
-									<div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-										{interacoesQuery.isLoading ? (
-											<p className="text-xs text-slate-500 text-center py-4">
-												Carregando anotações…
-											</p>
-										) : interacoes.length === 0 ? (
-											<p className="text-xs text-slate-500 text-center py-4">
-												Nenhuma anotação ainda. Registre o primeiro contato
-												acima.
-											</p>
-										) : (
-											interacoes.map((item) => (
+											return (
 												<div
 													key={item.uuid}
-													className="p-3 rounded-lg border border-slate-800 bg-slate-950 space-y-1.5"
+													className="relative pl-4 pr-3.5 py-3 rounded-xl border border-slate-800/80 bg-[#0e1424] overflow-hidden"
 												>
-													<div className="flex items-center justify-between text-xs">
-														<span className="font-bold text-slate-100 flex items-center gap-1.5">
-															{item.tipo === "WHATSAPP" ? (
-																<>
-																	<MessageCircle className="w-3 h-3" />
-																	<span>WhatsApp</span>
-																</>
-															) : item.tipo === "LIGACAO" ? (
-																<>
-																	<Phone className="w-3 h-3" />
-																	<span>Ligação</span>
-																</>
-															) : item.tipo === "REUNIAO" ? (
-																<>
-																	<FileText className="w-3 h-3" />
-																	<span>Reunião</span>
-																</>
-															) : (
-																<>
-																	<Pin className="w-3 h-3" />
-																	<span>Nota</span>
-																</>
-															)}
+													<div className={`absolute left-0 top-0 bottom-0 w-1 ${config.bar}`} />
+													<div className="flex items-center justify-between text-xs mb-1.5">
+														<span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold border ${config.badge}`}>
+															{config.label}
 														</span>
-														<span className="text-slate-500 font-mono">
-															{formatDateBR(item.createdAt, true)}
+														<span className="text-slate-400 font-mono text-[11px]">
+															{formatDateBR(item.createdAt)} · {config.autor}
 														</span>
 													</div>
-													<p className="text-xs text-slate-300 leading-relaxed">
+													<p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line">
 														{item.resumo}
 													</p>
-												</div>
-											))
-										)}
-									</div>
-								</div>
-							</Card>
-						</div>
-					</div>
-				</form>
-
-				{/* === Projetos & Funil de Vendas (orçamento → proposta → contrato) === */}
-				<FunilVendasSection
-					leadUuid={id}
-					onCriarProjeto={handleConverterEmProjeto}
-				/>
-
-				{/* === Seção Enviar 1ª Mensagem (IA, fora do form por causa do window.open) === */}
-				<EnviarMensagemSection
-					leadUuid={id}
-					leadNome={leadQuery.data.nome}
-					telefoneCelular={leadQuery.data.telefoneCelular}
-					telefoneFixo={leadQuery.data.telefoneFixo}
-					email={
-						leadQuery.data.email ??
-						leadQuery.data.emails?.[0] ??
-						leadQuery.data.emailCnpj
-					}
-				/>
-
-				{/* === Superfície avançada: RF, QSA e auditoria (disclosure progressivo) === */}
-				<details className="group rounded-2xl border border-slate-800 bg-slate-900/40">
-					<summary className="cursor-pointer select-none flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider hover:text-slate-100">
-						<span>Dados da Receita Federal, QSA e auditoria</span>
-						<span className="flex items-center gap-2 font-mono text-slate-500 text-xs normal-case font-normal">
-							<span>consulta CNPJ, sócios e log de consultas</span>
-							<ChevronDown className="w-4 h-4 shrink-0 transition-transform group-open:rotate-180" />
-						</span>
-					</summary>
-					<div className="px-4 pb-4 pt-4 border-t border-slate-800 space-y-4 lg:space-y-6">
-						{/* === Seção Dados da Receita Federal & Inteligência de Qualificação === */}
-						{(() => {
-							const lead = leadQuery.data;
-							const porteInfo = lead
-								? estimarPorteEFaturamento(
-										lead.porte,
-										lead.opcaoPeloSimples,
-										lead.opcaoPeloMei,
-									)
-								: null;
-							const tempoAtividade = lead
-								? calcularTempoAtividade(lead.dataInicioAtividade)
-								: null;
-							const capitalSocialFormatado = lead
-								? formatarMoedaBrl(
-										(lead.capitalSocialCentavos
-											? lead.capitalSocialCentavos / 100
-											: lead.capitalSocial) ?? 0,
-									)
-								: "R$ 0,00";
-
-							return (
-								<Card
-									header={
-										<div className="flex flex-wrap items-center justify-between gap-2 w-full">
-											<div>
-												<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-													Receita Federal & Inteligência de Qualificação
-												</h3>
-												<p className="text-xs text-slate-500 mt-0.5">
-													Última consulta:{" "}
-													{lead?.dataUltimaConsultaCnpj
-														? formatDateBR(lead.dataUltimaConsultaCnpj, true)
-														: "nunca"}
-													{lead?.descricaoSituacaoCadastral && (
-														<span
-															className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
-																lead.descricaoSituacaoCadastral === "ATIVA"
-																	? "bg-emerald-950/70 text-emerald-300 border border-emerald-700"
-																	: "bg-rose-950/70 text-rose-300 border border-rose-700"
-															}`}
-														>
-															● {lead.descricaoSituacaoCadastral}
-														</span>
-													)}
-												</p>
-											</div>
-											<div className="flex items-center gap-2">
-												{lead?.descricaoMatrizFilial && (
-													<span className="px-2 py-0.5 rounded text-xs font-mono uppercase bg-slate-900 border border-slate-700 text-slate-300">
-														{lead.descricaoMatrizFilial}
-													</span>
-												)}
-												{lead?.porte && (
-													<span className="px-2 py-0.5 rounded text-xs font-mono uppercase bg-indigo-950/60 border border-indigo-800 text-indigo-300">
-														{lead.porte}
-													</span>
-												)}
-											</div>
-										</div>
-									}
-								>
-									{(() => {
-										const temDadosCnpj = Boolean(
-											lead?.dataUltimaConsultaCnpj ||
-												lead?.cnaeFiscal ||
-												lead?.naturezaJuridica ||
-												lead?.porte ||
-												lead?.descricaoSituacaoCadastral ||
-												lead?.razaoSocial,
-										);
-
-										if (!lead?.cnpj && !temDadosCnpj) {
-											return (
-												<p className="text-xs text-slate-500 italic text-center py-4">
-													Sem CNPJ cadastrado. Adicione um CNPJ no formulário
-													acima e clique em "Buscar Dados CNPJ (BrasilAPI)" para
-													enriquecer.
-												</p>
-											);
-										}
-
-										if (!temDadosCnpj) {
-											return (
-												<div className="text-center py-6 space-y-3">
-													<p className="text-xs text-slate-400">
-														CNPJ{" "}
-														<span className="font-mono text-slate-200 font-semibold">
-															{maskCpfCnpj(lead.cnpj ?? "")}
-														</span>{" "}
-														cadastrado, mas os dados da Receita Federal ainda
-														não foram consultados.
-													</p>
-													<Button
-														variant="primary"
-														size="sm"
-														onClick={handleBuscarCnpj}
-														disabled={cnpjMutation.isPending}
-														leftIcon={<Search className="w-3.5 h-3.5" />}
-													>
-														{cnpjMutation.isPending
-															? "Consultando…"
-															: "Consultar Agora na BrasilAPI"}
-													</Button>
-												</div>
-											);
-										}
-
-										return (
-											<div className="space-y-6">
-												{/* Situação Especial se houver */}
-												{lead.situacaoEspecial && (
-													<div className="p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-200">
-														<div className="flex items-center gap-2">
-															<AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-															<span className="font-bold uppercase tracking-wider text-amber-400">
-																Situação Especial:
-															</span>
-															<span>{lead.situacaoEspecial}</span>
-														</div>
-														{lead.dataSituacaoEspecial && (
-															<span className="font-mono text-xs text-amber-300">
-																Desde {formatDateBR(lead.dataSituacaoEspecial)}
-															</span>
-														)}
-													</div>
-												)}
-
-												{/* Grade de Destaque / KPIs Comerciais */}
-												{porteInfo && (
-													<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-														<div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-															<div className="flex items-center justify-between text-slate-400 text-xs">
-																<span className="font-semibold uppercase tracking-wider">
-																	Tamanho & Equipe
-																</span>
-																<Users className="w-3.5 h-3.5" />
-															</div>
-															<p className="text-sm font-bold text-slate-100">
-																{lead.quantidadeFuncionarios
-																	? `${lead.quantidadeFuncionarios}+ colaboradores`
-																	: porteInfo.estimativaFuncionarios}
-															</p>
-															<p className="text-xs text-indigo-400 font-medium truncate">
-																{porteInfo.label}
-															</p>
-														</div>
-
-														<div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-															<div className="flex items-center justify-between text-slate-400 text-xs">
-																<span className="font-semibold uppercase tracking-wider">
-																	Faturamento Presumido
-																</span>
-																<TrendingUp className="w-3.5 h-3.5" />
-															</div>
-															<p className="text-sm font-bold text-emerald-300">
-																{lead.faturamentoPresumido ||
-																	porteInfo.faturamentoPresumido}
-															</p>
-															<p className="text-xs text-slate-400">
-																Estimativa por enquadramento
-															</p>
-														</div>
-
-														<div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-															<div className="flex items-center justify-between text-slate-400 text-xs">
-																<span className="font-semibold uppercase tracking-wider">
-																	Capital Social
-																</span>
-																<Coins className="w-3.5 h-3.5" />
-															</div>
-															<p className="text-sm font-bold font-mono text-slate-100">
-																{capitalSocialFormatado}
-															</p>
-															<p className="text-xs text-slate-400">
-																Declarado na Receita Federal
-															</p>
-														</div>
-
-														<div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-															<div className="flex items-center justify-between text-slate-400 text-xs">
-																<span className="font-semibold uppercase tracking-wider">
-																	Tempo de Atividade
-																</span>
-																<Hourglass className="w-3.5 h-3.5" />
-															</div>
-															<p className="text-sm font-bold text-slate-100">
-																{tempoAtividade ?? "—"}
-															</p>
-															<p className="text-xs text-slate-400">
-																{lead.dataInicioAtividade
-																	? `Fundada em ${formatDateBR(lead.dataInicioAtividade)}`
-																	: "Data não informada"}
-															</p>
-														</div>
-													</div>
-												)}
-
-												{/* Detalhes do Cadastro */}
-												<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs pt-2 border-t border-slate-800">
-													{lead.nomeFantasia && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Nome Fantasia
-															</p>
-															<p className="text-slate-200">
-																{lead.nomeFantasia}
-															</p>
-														</div>
-													)}
-													{lead.cnpj && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																CNPJ
-															</p>
-															<p className="font-mono text-slate-200">
-																{maskCpfCnpj(lead.cnpj)}
-															</p>
-														</div>
-													)}
-													<div>
-														<p className="text-xs text-slate-500 uppercase font-semibold">
-															Website Oficial
-														</p>
-														{lead.website ? (
-															<a
-																href={
-																	lead.website.startsWith("http")
-																		? lead.website
-																		: `https://${lead.website}`
-																}
-																target="_blank"
-																rel="noopener noreferrer"
-																className="text-indigo-400 hover:text-indigo-300 font-mono inline-flex items-center gap-1 hover:underline"
-															>
-																<Globe className="w-3 h-3" />
-																{lead.website.replace(/^https?:\/\//, "")}
-																<ArrowUpRight className="w-3 h-3" />
-															</a>
-														) : (
-															<p className="text-slate-500 italic">
-																Não identificado
-															</p>
-														)}
-													</div>
-													{lead.dataSituacaoCadastral && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Data da Situação
-															</p>
-															<p className="font-mono text-slate-200">
-																{formatDateBR(lead.dataSituacaoCadastral)}
-															</p>
-														</div>
-													)}
-													{lead.descricaoMotivoSituacaoCadastral && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Motivo da Situação
-															</p>
-															<p className="text-slate-200">
-																{lead.motivoSituacaoCadastral != null && (
-																	<span className="font-mono text-slate-400 mr-1">
-																		[{lead.motivoSituacaoCadastral}]
-																	</span>
-																)}
-																{lead.descricaoMotivoSituacaoCadastral}
-															</p>
-														</div>
-													)}
-													{lead.naturezaJuridica && (
-														<div className="md:col-span-2">
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Natureza Jurídica
-															</p>
-															<p className="text-slate-200">
-																{lead.codigoNaturezaJuridica
-																	? `[${lead.codigoNaturezaJuridica}] `
-																	: ""}
-																{lead.naturezaJuridica}
-															</p>
-														</div>
-													)}
-													<div>
-														<p className="text-xs text-slate-500 uppercase font-semibold">
-															Simples Nacional
-														</p>
-														<p
-															className={
-																lead.opcaoPeloSimples
-																	? "text-emerald-400 font-semibold inline-flex items-center gap-1"
-																	: "text-slate-400"
-															}
-														>
-															{lead.opcaoPeloSimples && (
-																<Check className="w-3 h-3" />
-															)}
-															{lead.opcaoPeloSimples
-																? "Optante"
-																: "Não optante"}
-															{lead.dataOpcaoPeloSimples &&
-																` (desde ${formatDateBR(lead.dataOpcaoPeloSimples)})`}
-														</p>
-													</div>
-													<div>
-														<p className="text-xs text-slate-500 uppercase font-semibold">
-															MEI
-														</p>
-														<p
-															className={
-																lead.opcaoPeloMei
-																	? "text-emerald-400 font-semibold inline-flex items-center gap-1"
-																	: "text-slate-400"
-															}
-														>
-															{lead.opcaoPeloMei && (
-																<Check className="w-3 h-3" />
-															)}
-															{lead.opcaoPeloMei ? "Optante" : "Não enquadrado"}
-														</p>
-													</div>
-													{lead.qualificacaoResponsavel && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Qualificação do Responsável
-															</p>
-															<p className="text-slate-200">
-																{lead.qualificacaoResponsavel}
-															</p>
-														</div>
-													)}
-													{lead.enteFederativoResponsavel && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Ente Federativo
-															</p>
-															<p className="text-slate-200">
-																{lead.enteFederativoResponsavel}
-															</p>
-														</div>
-													)}
-													{(lead.nomeCidadeNoExterior || lead.pais) && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Sede Exterior
-															</p>
-															<p className="text-slate-200">
-																{[lead.nomeCidadeNoExterior, lead.pais]
-																	.filter(Boolean)
-																	.join(" - ")}
-															</p>
-														</div>
-													)}
-													{lead.cnaeFiscalDescricao && (
-														<div className="md:col-span-2 lg:col-span-4 p-3 rounded-lg border border-slate-800 bg-slate-950">
-															<p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
-																Atividade Principal (CNAE Primário)
-															</p>
-															<p className="text-slate-100 font-medium">
-																<span className="font-mono text-indigo-400 font-bold mr-2">
-																	{lead.cnaeFiscal}
-																</span>
-																{lead.cnaeFiscalDescricao}
-															</p>
-														</div>
-													)}
-													{lead.emailCnpj && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																E-mail no Cadastro
-															</p>
-															<a
-																href={`mailto:${lead.emailCnpj}`}
-																className="text-slate-200 hover:text-indigo-300 underline font-mono"
-															>
-																{lead.emailCnpj}
-															</a>
-														</div>
-													)}
-													{(lead.dddTelefone1 ||
-														lead.dddTelefone2 ||
-														lead.dddFax) && (
-														<div>
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Telefones no CNPJ
-															</p>
-															<p className="font-mono text-slate-200">
-																{[
-																	lead.dddTelefone1,
-																	lead.dddTelefone2,
-																	lead.dddFax,
-																]
-																	.filter(Boolean)
-																	.join(" / ")}
-															</p>
-														</div>
-													)}
-													{(lead.tipoLogradouro || lead.logradouro) && (
-														<div className="md:col-span-2">
-															<p className="text-xs text-slate-500 uppercase font-semibold">
-																Endereço Fiscal Oficial
-															</p>
-															<p className="text-slate-200">
-																{[
-																	lead.tipoLogradouro,
-																	lead.logradouro,
-																	lead.numero,
-																	lead.complemento,
-																]
-																	.filter(Boolean)
-																	.join(", ")}
-																{lead.bairro && ` — ${lead.bairro}`}
-																{lead.municipio &&
-																	` (${lead.municipio}/${lead.uf ?? ""})`}
-																{lead.codigoMunicipioIbge && (
-																	<span className="text-slate-500 text-xs font-mono ml-1">
-																		[IBGE: {lead.codigoMunicipioIbge}]
-																	</span>
-																)}
-																{lead.cep && ` · CEP ${maskCep(lead.cep)}`}
-															</p>
-														</div>
-													)}
-													{lead.regimeTributario &&
-														lead.regimeTributario.length > 0 && (
-															<div className="md:col-span-2 lg:col-span-4 p-3 rounded-lg border border-slate-800 bg-slate-950 space-y-1.5">
-																<p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-																	Histórico de Regime Tributário (Escriturações)
-																</p>
-																<div className="flex flex-wrap gap-2 pt-1">
-																	{lead.regimeTributario.map((r) => (
-																		<span
-																			key={r.ano}
-																			className="px-2.5 py-1 rounded-md text-xs font-mono border border-slate-800 bg-slate-900 text-slate-300"
-																		>
-																			<strong className="text-indigo-400">
-																				{r.ano}:
-																			</strong>{" "}
-																			{r.forma_de_tributacao}{" "}
-																			<span className="text-slate-500 text-xs">
-																				({r.quantidade_de_escrituracoes} escr.)
-																			</span>
-																		</span>
-																	))}
-																</div>
-															</div>
-														)}
-													{lead.cnaesSecundarios &&
-														lead.cnaesSecundarios.length > 0 && (
-															<div className="md:col-span-2 lg:col-span-4 p-3 rounded-lg border border-slate-800 bg-slate-950">
-																<p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
-																	CNAEs Secundários (
-																	{lead.cnaesSecundarios.length})
-																</p>
-																<div className="max-h-56 overflow-y-auto space-y-1.5 pr-2">
-																	{lead.cnaesSecundarios.map((c) => (
-																		<div
-																			key={c.codigo}
-																			className="text-slate-300 text-xs flex items-start gap-2.5 p-1.5 rounded hover:bg-slate-900/60"
-																		>
-																			<span className="font-mono text-indigo-400 font-semibold shrink-0">
-																				{c.codigo}
-																			</span>
-																			<span>{c.descricao}</span>
-																		</div>
-																	))}
-																</div>
-															</div>
-														)}
-												</div>
-											</div>
-										);
-									})()}
-								</Card>
-							);
-						})()}
-
-						{/* === QSA + Histórico lado a lado em xl+ === */}
-						<div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-							{/* === Quadro Societário (QSA) === */}
-							{(() => {
-								const listaSocios =
-									sociosQuery.data?.socios && sociosQuery.data.socios.length > 0
-										? sociosQuery.data.socios
-										: (leadQuery.data?.qsa ?? []);
-
-								return (
-									<Card
-										header={
-											<div className="flex items-center justify-between w-full">
-												<div>
-													<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-														Quadro Societário (QSA)
-													</h3>
-													<p className="text-xs text-slate-500 mt-0.5">
-														Sócios e administradores retornados pela Receita
-														Federal
-													</p>
-												</div>
-												<span className="text-xs font-mono text-slate-400">
-													{listaSocios.length} sócio(s)
-												</span>
-											</div>
-										}
-									>
-										{sociosQuery.isPending && listaSocios.length === 0 ? (
-											<p className="text-xs text-slate-500 italic text-center py-3">
-												Carregando QSA…
-											</p>
-										) : listaSocios.length === 0 ? (
-											<p className="text-xs text-slate-500 italic text-center py-3">
-												Nenhum sócio registrado. (Clique em "Buscar Dados CNPJ"
-												para consultar na Receita Federal.)
-											</p>
-										) : (
-											<div className="space-y-2.5">
-												{listaSocios.map((s, idx) => (
-													<div
-														key={s.uuid ?? `${s.nomeSocio}-${idx}`}
-														className="p-3.5 rounded-lg border border-slate-800 bg-slate-950 space-y-2"
-													>
-														<div className="flex flex-wrap items-start justify-between gap-3">
-															<div>
-																<p className="font-bold text-sm text-slate-100">
-																	{s.nomeSocio}
-																</p>
-																<p className="text-xs font-mono text-slate-400 mt-0.5">
-																	{s.cnpjCpfDoSocio ?? "(sem documento)"}
-																	{s.qualificacaoSocio && (
-																		<span className="text-indigo-400 font-sans font-semibold">
-																			{" · "}
-																			{s.qualificacaoSocio}
-																		</span>
-																	)}
-																</p>
-															</div>
-															{s.dataEntradaSociedade && (
-																<span className="text-xs text-slate-500 font-mono whitespace-nowrap bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
-																	Entrada:{" "}
-																	{formatDateBR(
-																		new Date(
-																			s.dataEntradaSociedade,
-																		).toISOString(),
-																	)}
-																</span>
-															)}
-														</div>
-														<div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-															{s.faixaEtaria && (
-																<span>Faixa etária: {s.faixaEtaria}</span>
-															)}
-															{s.pais && <span>País: {s.pais}</span>}
-														</div>
-														{(s.nomeRepresentanteLegal ||
-															s.cpfRepresentanteLegal) && (
-															<div className="pt-2 border-t border-slate-900 text-xs text-slate-400">
-																<span className="text-slate-500">
-																	Representante Legal:{" "}
-																</span>
-																<strong className="text-slate-200">
-																	{s.nomeRepresentanteLegal || "—"}
-																</strong>
-																{s.cpfRepresentanteLegal && (
-																	<span className="font-mono text-slate-500 ml-1">
-																		({s.cpfRepresentanteLegal})
-																	</span>
-																)}
-																{s.qualificacaoRepresentanteLegal && (
-																	<span className="text-slate-400 ml-1">
-																		· {s.qualificacaoRepresentanteLegal}
-																	</span>
-																)}
-															</div>
-														)}
-													</div>
-												))}
-											</div>
-										)}
-									</Card>
-								);
-							})()}
-
-							{/* === Histórico de Consultas CNPJ (audit) === */}
-							<Card
-								header={
-									<div className="flex items-center justify-between w-full">
-										<div>
-											<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-												Histórico de Consultas CNPJ
-											</h3>
-											<p className="text-xs text-slate-500 mt-0.5">
-												Log de auditoria — cada clique em "Buscar CNPJ" gera um
-												registro
-											</p>
-										</div>
-										<span className="text-xs font-mono text-slate-400">
-											{(() => {
-												const n =
-													historicoCnpjQuery.data?.consultas.length ?? 0;
-												return `${n} ${n === 1 ? "consulta" : "consultas"}`;
-											})()}
-										</span>
-									</div>
-								}
-							>
-								{historicoCnpjQuery.isPending ? (
-									<p className="text-xs text-slate-500 italic text-center py-3">
-										Carregando histórico…
-									</p>
-								) : !historicoCnpjQuery.data ||
-									historicoCnpjQuery.data.consultas.length === 0 ? (
-									<p className="text-xs text-slate-500 italic text-center py-3">
-										Nenhuma consulta registrada ainda.
-									</p>
-								) : (
-									<div className="space-y-1.5">
-										{historicoCnpjQuery.data.consultas.map((c) => {
-											const statusClass =
-												c.status === "SUCESSO"
-													? "text-emerald-400"
-													: c.status === "NAO_ENCONTRADO"
-														? "text-amber-400"
-														: c.status === "RATE_LIMIT"
-															? "text-blue-400"
-															: "text-rose-400";
-											return (
-												<div
-													key={c.uuid}
-													className="flex items-center justify-between p-2 rounded border border-slate-800 bg-slate-950 text-xs"
-												>
-													<div className="flex items-center gap-2">
-														<span className="font-mono text-slate-400">
-															{formatDateBR(
-																new Date(c.dataConsulta).toISOString(),
-																true,
-															)}
-														</span>
-														<span className="font-mono text-slate-500">·</span>
-														<span className="font-mono text-slate-300">
-															{c.cnpjConsultado}
-														</span>
-														<span className="font-mono text-slate-500">·</span>
-														<span className="text-slate-500">{c.fonte}</span>
-													</div>
-													<div className="flex items-center gap-2">
-														<span
-															className={`font-mono font-bold ${statusClass}`}
-														>
-															{c.status}
-														</span>
-														{c.mensagemErro && (
-															<span
-																title={c.mensagemErro}
-																className="text-rose-400 cursor-help"
-															>
-																<AlertTriangle className="w-3 h-3" />
-															</span>
-														)}
-													</div>
 												</div>
 											);
 										})}
 									</div>
 								)}
-							</Card>
-						</div>
+							</div>
+						</Card>
+
+						{/* Right 2: Canal E-mail — Gerador com IA & Template HTML (King Dev) */}
+						<Card
+							header={
+								<div className="flex items-center justify-between w-full">
+									<div>
+										<h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+											Canal E-mail — Gerador com IA & Template HTML (King Dev)
+										</h3>
+										<p className="text-[11px] text-slate-400 font-normal mt-0.5">
+											Geração com IA, personalização de assunto e corpo, prévia institucional e exportação
+										</p>
+									</div>
+									<span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1c1a3b] border border-indigo-700 text-indigo-300 shrink-0">
+										CANAL: EMAIL
+									</span>
+								</div>
+							}
+						>
+							<div className="space-y-4">
+								<div>
+									<div className="flex items-center justify-between mb-1">
+										<label
+											htmlFor="em-subj"
+											className="block text-xs font-semibold text-slate-300 uppercase"
+										>
+											Assunto do E-mail
+										</label>
+										<span className="text-[10px] text-slate-400 font-mono">
+											{Math.min(emailAssunto.length, 60)}/60 caracteres
+										</span>
+									</div>
+									<input
+										id="em-subj"
+										type="text"
+										maxLength={60}
+										value={emailAssunto}
+										onChange={(e) => setEmailAssunto(e.target.value)}
+										className="w-full text-xs font-mono border border-slate-800 bg-[#0b0f19] rounded-lg px-3 py-2 text-slate-200 focus:border-indigo-500 focus:outline-none"
+									/>
+								</div>
+
+								<div>
+									<div className="flex items-center justify-between mb-1.5">
+										<label
+											htmlFor="em-body"
+											className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+										>
+											CORPO DO E-MAIL (MENSAGEM):
+										</label>
+										<button
+											type="button"
+											onClick={() => setEditandoCorpoEmail(!editandoCorpoEmail)}
+											className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono cursor-pointer underline"
+										>
+											{editandoCorpoEmail ? "Fechar editor" : "✏️ Editar texto do e-mail"}
+										</button>
+									</div>
+									{editandoCorpoEmail && (
+										<textarea
+											id="em-body"
+											rows={6}
+											value={emailCorpo}
+											onChange={(e) => setEmailCorpo(e.target.value)}
+											className="w-full text-xs font-sans border border-slate-800 bg-[#0b0f19] rounded-lg p-3 text-slate-200 focus:border-indigo-500 focus:outline-none leading-relaxed mb-2"
+										/>
+									)}
+								</div>
+
+								<div className="rounded-xl border border-slate-800 bg-white text-slate-900 overflow-hidden shadow-inner">
+									<div className="bg-[#0f172a] px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+										<span className="text-[11px] font-black tracking-widest text-[#a5b4fc] font-mono">
+											KING DEV · ENGENHARIA DE SOFTWARE SOB MEDIDA
+										</span>
+									</div>
+
+									<div className="p-5 space-y-3 text-xs leading-relaxed">
+										<div className="text-slate-800 whitespace-pre-line leading-relaxed font-sans">
+											{emailCorpo}
+										</div>
+										<div className="pt-2">
+											<button
+												type="button"
+												className="inline-block px-4 py-2 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold text-xs rounded-lg transition-colors shadow-sm cursor-pointer"
+											>
+												Agendar Diagnóstico de 15 min →
+											</button>
+										</div>
+										<div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-mono">
+											King Dev Tecnologia · {cidade || leadQuery.data?.cidade || "Curitiba"}/{uf || leadQuery.data?.uf || "PR"} · CNPJ 58.593.009/0001-00
+										</div>
+									</div>
+								</div>
+
+								<div className="flex flex-wrap items-center gap-2 pt-1">
+									<button
+										type="button"
+										onClick={() => gerarEmailMutation.mutate()}
+										disabled={gerarEmailMutation.isPending}
+										className="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+									>
+										<Sparkles className="w-3.5 h-3.5" />
+										{gerarEmailMutation.isPending ? "Gerando com IA…" : "Gerar E-mail com IA"}
+									</button>
+
+									<button
+										type="button"
+										onClick={() => {
+											const rendered = renderizarEmailPrimeiraMensagem({
+												assunto: emailAssunto,
+												corpo: emailCorpo,
+											});
+											navigator.clipboard.writeText(rendered.html);
+											setCopiadoHtmlPronto(true);
+											setTimeout(() => setCopiadoHtmlPronto(false), 3000);
+										}}
+										className="px-3.5 py-2 rounded-lg bg-[#1e293b] hover:bg-slate-700 text-slate-100 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm border border-slate-700"
+									>
+										{copiadoHtmlPronto ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+										{copiadoHtmlPronto ? "HTML Copiado!" : "Copiar HTML Pronto"}
+									</button>
+
+									<button
+										type="button"
+										onClick={() => salvarTemplateMutation.mutate()}
+										disabled={salvarTemplateMutation.isPending}
+										className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+									>
+										<Save className="w-3.5 h-3.5" />
+										{salvarTemplateMutation.isPending
+											? "Salvando…"
+											: "Salvar Template no Banco"}
+									</button>
+
+									<button
+										type="button"
+										onClick={() => {
+											setEmailAssunto(`Redução de 65% nas filas de atendimento — ${leadQuery.data?.nome ?? "Empresa"}`);
+											setEmailCorpo(defaultCorpoEmail);
+										}}
+										className="px-3 py-2 rounded-lg bg-[#14192b] border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1"
+									>
+										<RefreshCw className="w-3 h-3" />
+										↻
+									</button>
+								</div>
+
+								<p className="text-[11px] text-slate-500 font-mono">
+									Destino: {email || leadQuery.data?.email || leadQuery.data?.emails?.[0] || leadQuery.data?.emailCnpj || "—"} · gemini-3.5-flash-lite
+								</p>
+							</div>
+						</Card>
 					</div>
-				</details>
+				</div>
+
+				{/* 4. Projetos, Orçamento (RN-001/G-03) e Superfície Avançada Receita Federal (QSA) */}
+				<div className="space-y-6 pt-2">
+					<FunilVendasSection
+						leadUuid={id}
+						onCriarProjeto={handleConverterEmProjeto}
+					/>
+					<SuperficieAvancadaSection
+						lead={leadQuery.data}
+						sociosQuery={sociosQuery}
+						historicoCnpjQuery={historicoCnpjQuery}
+						cnpjMutation={cnpjMutation}
+						onBuscarCnpj={handleBuscarCnpj}
+					/>
+				</div>
 			</div>
 
 			{/* Modal de confirmação de exclusão */}

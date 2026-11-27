@@ -9,6 +9,16 @@ import {
 import { uploadAnexoQuestionarioServerFn } from "#/api/storage";
 
 export const Route = createFileRoute("/q/$token")({
+	head: () => ({
+		meta: [
+			{ title: "Questionário de Diagnóstico · King Dev Tec" },
+			{
+				name: "description",
+				content: "Questionário de Diagnóstico Técnico e Levantamento King Dev Tec",
+			},
+			{ name: "robots", content: "noindex, nofollow" },
+		],
+	}),
 	component: QuestionarioPublicoPage,
 });
 
