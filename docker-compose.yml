@@ -40,13 +40,6 @@ services:
       # ── API de CNPJ (pública, sem chave) ─────────────────────────────
       CNPJ_API_URL: ${CNPJ_API_URL:-https://brasilapi.com.br/api/cnpj/v1}
 
-      # ── Integrações externas (opcionais) ─────────────────────────────
-      # Podem ser configuradas depois em Configurações → Integrações
-      AISA_API_KEY: ${AISA_API_KEY:-}
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
-
     volumes:
       # Volume nomeado → Coolify cria e gerencia automaticamente
       # Ponto de montagem: /data (onde fica o prod.db)
