@@ -13,10 +13,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  // Lido da variável de ambiente DATABASE_URL em runtime.
-  // Em desenvolvimento: DATABASE_URL="file:./dev.db" (via .env.local)
-  // Em produção (container): DATABASE_URL="file:/data/prod.db" (volume Docker)
-  url      = env("DATABASE_URL")
+  // Prisma 7: a URL fica em prisma.config.ts (DATABASE_URL) e o adapter no db.ts
 }
 
 // ==========================================================================

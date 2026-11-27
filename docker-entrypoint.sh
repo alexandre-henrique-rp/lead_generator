@@ -3,7 +3,7 @@
 # docker-entrypoint.sh
 # Executado pelo container ao iniciar. Ordem:
 #   0. Garante que o diretório do banco SQLite existe e tem permissão
-#   1. Aplica migrate (cria/atualiza o schema em /data/prod.db)
+#   1. Sincroniza o schema com db push (cria/atualiza /data/prod.db)
 #   2. Executa seed APENAS se o banco estiver vazio (1ª inicialização)
 #   3. Sobe o servidor Nitro
 # ==========================================================================
@@ -20,9 +20,10 @@ echo "▶ Garantindo diretório do banco: ${DB_DIR}"
 mkdir -p "${DB_DIR}"
 chmod 700 "${DB_DIR}"
 
-# 1. Migrate — idempotente, seguro em produção
-echo "▶ Aplicando migrações do Prisma..."
-./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
+# 1. Schema — o projeto não usa prisma/migrations (fluxo db push, ver AGENTS.md).
+#    Idempotente; sem --accept-data-loss, falha em vez de apagar dados.
+echo "▶ Sincronizando schema do Prisma (db push)..."
+./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma
 
 # 2. Seed — só roda se a tabela Usuario estiver vazia
 echo "▶ Verificando se o seed é necessário..."
