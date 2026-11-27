@@ -1,7 +1,11 @@
 # ==========================================================================
-# docker-compose.yml — lead_generator (uso local / teste de container)
-# NÃO é necessário no Coolify (que gerencia containers diretamente).
-# Use este arquivo para testar o container localmente antes do deploy.
+# docker-compose.yml — Sisten / KingDevTec
+# --------------------------------------------------------------------------
+# Coolify lê este arquivo e:
+#   • Expõe no painel todas as variáveis com sintaxe ${VAR:-default}
+#   • Cria e gerencia automaticamente o volume nomeado "sisten_data"
+#
+# Para testar localmente: docker compose up --build
 # ==========================================================================
 
 services:
@@ -9,49 +13,59 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
+
     environment:
-      NODE_ENV: production
-      PORT: "3000"
+      # ── Runtime ───────────────────────────────────────────────────────
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
 
-      # ── Localização do banco SQLite ──────────────────────────────────
-      # Formato obrigatório: file:<caminho-absoluto>
-      # O /data é o volume persistente — NÃO use caminhos relativos aqui
-      DATABASE_URL: "file:/data/prod.db"
-      DB_DATA_DIR: "/data"
+      # ── Banco SQLite — volume persistente em /data ────────────────────
+      # IMPORTANTE: use sempre caminho absoluto (file:/data/...).
+      # O diretório /data é o ponto de montagem do volume abaixo.
+      DATABASE_URL: ${DATABASE_URL:-file:/data/prod.db}
+      DB_DATA_DIR: ${DB_DATA_DIR:-/data}
 
-      # ── Credenciais do admin ─────────────────────────────────────────
-      ADMIN_EMAIL: admin@kingdevtec.com
-      ADMIN_SENHA: troque-em-producao
-      ADMIN_NOME: "Administrador KingDevTec"
+      # ── Admin — TROQUE ADMIN_SENHA antes do 1º deploy! ───────────────
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kingdevtec.com}
+      ADMIN_SENHA: ${ADMIN_SENHA:-troque-em-producao}
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador KingDevTec}
 
-      # ── Outras configs ───────────────────────────────────────────────
-      CNPJ_API_URL: https://brasilapi.com.br/api/cnpj/v1
-      SERVER_URL: http://localhost:3000
+      # ── URL pública ───────────────────────────────────────────────────
+      SERVER_URL: ${SERVER_URL:-https://kingdevtec.com}
+      VITE_APP_TITLE: ${VITE_APP_TITLE:-KingDevTec — Sisten}
 
-      # Adicione suas chaves de API aqui para teste local:
-      # AISA_API_KEY: sk-aisa-...
-      # GEMINI_API_KEY: ...
+      # ── API de CNPJ (pública, sem chave) ─────────────────────────────
+      CNPJ_API_URL: ${CNPJ_API_URL:-https://brasilapi.com.br/api/cnpj/v1}
+
+      # ── Integrações externas (opcionais) ─────────────────────────────
+      # Podem ser configuradas depois em Configurações → Integrações
+      AISA_API_KEY: ${AISA_API_KEY:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
 
     volumes:
-      # Volume nomeado → persiste o prod.db entre restarts e rebuilds
-      # Coolify cria este volume automaticamente quando você configura
-      # Storage Path: /data no painel da aplicação
+      # Volume nomeado → Coolify cria e gerencia automaticamente
+      # Ponto de montagem: /data (onde fica o prod.db)
       - sisten_data:/data
 
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:${PORT:-3000}/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
 
+# Coolify detecta e persiste volumes nomeados automaticamente.
+# Backup local: docker run --rm \
+#   -v lead_generator_sisten_data:/data \
+#   -v $(pwd):/bkp alpine \
+#   tar czf /bkp/prod.db.tar.gz -C /data .
 volumes:
-  # Volume nomeado — o Docker garante persistência mesmo após `down`
-  # Para inspecionar: docker volume inspect lead_generator_sisten_data
-  # Para backup:      docker run --rm -v lead_generator_sisten_data:/data -v $(pwd):/bkp alpine tar czf /bkp/prod.db.tar.gz -C /data .
   sisten_data:
     driver: local

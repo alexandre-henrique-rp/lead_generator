@@ -55,27 +55,14 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 # Volume para persistir o banco SQLite.
-# No Coolify: mapeie o Storage Path para /data
-# Em docker run: use -v sisten_data:/data
-# O arquivo do banco fica em: /data/prod.db
+# Ponto de montagem: /data  →  arquivo: /data/prod.db
+# Coolify detecta automaticamente volumes nomeados definidos no docker-compose.yml
 VOLUME ["/data"]
 
-# ------------------------------------------------------------------
-# Variáveis de ambiente — defaults de produção
-# Sobrescreva no painel do Coolify em "Environment Variables"
-# ------------------------------------------------------------------
+# Variáveis com defaults mínimos para o processo Node.js.
+# Os valores reais vêm do docker-compose.yml / painel do Coolify em runtime.
 ENV NODE_ENV=production
 ENV PORT=3000
-
-# Localização do banco SQLite (dentro do volume /data)
-# Formato: file:<caminho-absoluto>
-# NÃO altere este valor — o volume /data garante a persistência
-ENV DATABASE_URL="file:/data/prod.db"
-
-# Pasta onde o SQLite vai criar o arquivo (garantia extra)
-ENV DB_DATA_DIR="/data"
-
-ENV CNPJ_API_URL="https://brasilapi.com.br/api/cnpj/v1"
 
 # Expor a porta configurada
 EXPOSE 3000
