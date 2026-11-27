@@ -11,7 +11,13 @@ set -e
 
 echo "▶ NODE_ENV=${NODE_ENV}"
 echo "▶ DATABASE_URL=${DATABASE_URL}"
-echo "▶ PORT=${PORT:-3000}"
+
+# Porta INTERNA do app. Fixa (3000) e independente da porta publicada no
+# host (HOST_PORT). Fixar aqui impede que um PORT injetado pelo painel do
+# Coolify desalinhe o app do mapeamento de portas do container.
+APP_PORT="${APP_PORT:-3000}"
+export PORT="${APP_PORT}"
+echo "▶ APP_PORT=${APP_PORT} (PORT=${PORT})"
 
 # 0. Garantir que o diretório do volume SQLite existe com permissão de escrita
 #    (essencial quando o volume é montado pela 1ª vez pelo Coolify)
@@ -46,5 +52,5 @@ else
 fi
 
 # 3. Iniciar o servidor Nitro
-echo "▶ Iniciando servidor na porta ${PORT:-3000}..."
+echo "▶ Iniciando servidor na porta ${APP_PORT}..."
 exec node .output/server/index.mjs

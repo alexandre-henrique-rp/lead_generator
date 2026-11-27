@@ -14,6 +14,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroPrecosRouteImport } from './routes/financeiro.precos'
 import { Route as LeadsIndexRouteImport } from './routes/leads.index'
@@ -50,6 +51,11 @@ const LoginRoute = LoginRouteImport.update({
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceiroIndexRoute = FinanceiroIndexRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/api/health': typeof ApiHealthRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
   '/leads/funil': typeof LeadsFunilRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/api/health': typeof ApiHealthRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
   '/leads/funil': typeof LeadsFunilRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/api/health': typeof ApiHealthRoute
   '/financeiro/precos': typeof FinanceiroPrecosRoute
   '/leads/$id': typeof LeadsIdRoute
   '/leads/funil': typeof LeadsFunilRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/esqueci-senha'
     | '/login'
     | '/perfil'
+    | '/api/health'
     | '/financeiro/precos'
     | '/leads/$id'
     | '/leads/funil'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/esqueci-senha'
     | '/login'
     | '/perfil'
+    | '/api/health'
     | '/financeiro/precos'
     | '/leads/$id'
     | '/leads/funil'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/esqueci-senha'
     | '/login'
     | '/perfil'
+    | '/api/health'
     | '/financeiro/precos'
     | '/leads/$id'
     | '/leads/funil'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   FinanceiroPrecosRoute: typeof FinanceiroPrecosRoute
   LeadsIdRoute: typeof LeadsIdRoute
   LeadsFunilRoute: typeof LeadsFunilRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financeiro/': {
@@ -381,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   EsqueciSenhaRoute: EsqueciSenhaRoute,
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
+  ApiHealthRoute: ApiHealthRoute,
   FinanceiroPrecosRoute: FinanceiroPrecosRoute,
   LeadsIdRoute: LeadsIdRoute,
   LeadsFunilRoute: LeadsFunilRoute,
@@ -397,12 +418,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

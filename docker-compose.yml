@@ -15,12 +15,21 @@ services:
       dockerfile: Dockerfile
 
     ports:
-      - "${PORT:-3000}:3000"
+      # HOST_PORT = porta PUBLICADA no servidor (ex.: 3005).
+      # O container SEMPRE escuta em 3000 (ver APP_PORT abaixo).
+      # Regra: a variável da porta do host NUNCA pode ser a mesma da porta
+      # interna. Se as duas valerem 3005, o mapeamento vira host:3005 ->
+      # container:3000 e o app (que escuta em 3005) fica inacessível:
+      # o proxy/Cloudflare recebe "connection refused" e devolve 502.
+      - "${HOST_PORT:-3000}:3000"
 
     environment:
       # ── Runtime ───────────────────────────────────────────────────────
       NODE_ENV: ${NODE_ENV:-production}
-      PORT: ${PORT:-3000}
+      # Porta INTERNA do app (dentro do container). Fixa em 3000.
+      # O entrypoint faz `export PORT=$APP_PORT`, então o Nitro escuta aqui
+      # independentemente de qualquer PORT injetado pelo painel do Coolify.
+      APP_PORT: "3000"
 
       # ── Banco SQLite — volume persistente em /data ────────────────────
       # IMPORTANTE: use sempre caminho absoluto (file:/data/...).
@@ -48,11 +57,13 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:${PORT:-3000}/api/health"]
+      # CMD-SHELL resolve APP_PORT de dentro do container → o probe sempre
+      # acerta a porta real do app (sem depender de interpolação do Compose).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${APP_PORT:-3000}/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 45s
 
 # Coolify detecta e persiste volumes nomeados automaticamente.
 # Backup local: docker run --rm \
