@@ -28,10 +28,10 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Gerar o client Prisma a partir do schema
-RUN pnpm exec prisma generate
+RUN DATABASE_URL="file:/tmp/build.db" pnpm exec prisma generate
 
 # Build do TanStack Start → Nitro (output em .output/)
-RUN pnpm run build
+RUN DATABASE_URL="file:/tmp/build.db" pnpm run build
 
 # --------------------------------------------------------------------------
 # Estágio 2: Imagem de produção — apenas o necessário
