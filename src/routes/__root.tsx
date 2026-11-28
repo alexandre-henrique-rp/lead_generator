@@ -9,7 +9,12 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import TanstackQueryProvider from "../integrations/tanstack-query/root-provider";
-import appCss from "../styles.css?url";
+// Import normal (sem ?url): o CSS passa a ser um chunk real do build do
+// cliente, e o <link> no HTML sai do manifest do client build.
+// Com "?url" o ambiente SSR resolvia um hash DIFERENTE do arquivo emitido
+// (styles-<hash>.css != styles-<hash>.css do client) → 404 no CSS →
+// página sem estilo até o JS injetar o CSS ("quebra e depois atualiza").
+import "../styles.css";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -57,10 +62,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 		links: [
-			{
-				rel: "stylesheet",
-				href: appCss,
-			},
 			{
 				rel: "icon",
 				href: "/KingDevTec.ico",

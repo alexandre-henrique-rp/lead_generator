@@ -64,9 +64,19 @@ VOLUME ["/data"]
 # Os valores reais vêm do docker-compose.yml / painel do Coolify em runtime.
 ENV NODE_ENV=production
 ENV PORT=3000
+# Porta interna do app (dentro do container). Fixa — ver docker-entrypoint.sh.
+# É ela que o healthcheck e o mapeamento de portas usam; a porta pública do
+# host é outra variável (HOST_PORT).
+ENV APP_PORT=3000
 
 # Expor a porta configurada
 EXPOSE 3000
+
+# Healthcheck autocontido na imagem (o compose.yml define um equivalente).
+# Usa $APP_PORT — nunca $PORT — para não ser afetado por um PORT injetado
+# pelo painel do Coolify, que desalinharia o probe da porta real do app.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:${APP_PORT:-3000}/api/health || exit 1
 
 # Entrypoint: aplica migrate + seed e sobe o servidor
 COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
